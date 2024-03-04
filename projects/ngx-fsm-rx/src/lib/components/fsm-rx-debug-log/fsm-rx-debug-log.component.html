@@ -1,0 +1,36 @@
+<table>
+    <thead>
+        <tr>
+            <th class="time">
+                <p>Time</p>
+            </th>
+            <th class="type">
+                <p>Transition Type</p>
+            </th>
+            <th class="data">
+                <p>Transition Data</p>
+            </th>
+            <th class="message">
+                <p>Message</p>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <ng-container *ngFor="let entry of debugLog">
+            <tr [ngClass]="entry.result">
+                <td class="time">
+                    <p>{{entry.time}}</p>
+                </td>
+                <td class="type">
+                    <p>{{entry.type}}</p>
+                </td>
+                <td class="data">
+                    <p>{{entry.data}}</p>
+                </td>
+                <td class="message">
+                    <p>{{entry.message}}</p>
+                </td>
+            </tr>
+        </ng-container>
+    </tbody>
+</table>

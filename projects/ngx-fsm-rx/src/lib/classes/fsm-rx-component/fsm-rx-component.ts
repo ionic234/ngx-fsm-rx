@@ -24,8 +24,6 @@ export abstract class FsmRxComponent<
     /** Output for the string instructions to draw a state diagram of the state transitions */
     @Output() public outputStateDiagramDefinition: EventEmitter<string | undefined> = new EventEmitter();
 
-    /** A subject used to trigger the end of our observables when an override occurs.*/
-    protected override$: Subject<void> = new Subject();
 
     /** 
      * Override of the configuration object that controls the availability of certain debugging features.<br>
@@ -160,7 +158,7 @@ export abstract class FsmRxComponent<
      * Override of the function that processes the debug log entry and stores it in the _debugLog.<br>
      * Also makes sure the _debugLog doesn't exceed the debugLogBufferCount specified in the fsmDebugConfig<br>
      * This override emits the debug log when it is written to. 
-     * @param entry The dbug log entry to store. 
+     * @param entry The debug log entry to store. 
      */
     protected override writeToDebugLog(entry: DebugLogEntry<TState, TStateData>): void {
         super.writeToDebugLog(entry);
