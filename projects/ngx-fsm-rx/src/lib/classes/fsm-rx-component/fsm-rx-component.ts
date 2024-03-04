@@ -24,7 +24,6 @@ export abstract class FsmRxComponent<
     /** Output for the string instructions to draw a state diagram of the state transitions */
     @Output() public outputStateDiagramDefinition: EventEmitter<string | undefined> = new EventEmitter();
 
-
     /** 
      * Override of the configuration object that controls the availability of certain debugging features.<br>
      * This override adds additional options relevant for components. 

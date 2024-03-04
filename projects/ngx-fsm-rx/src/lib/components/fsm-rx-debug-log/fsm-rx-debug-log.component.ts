@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { TransitionTypes } from 'fsm-rx';
 
-
 export type DebugEntryResult = "success" | "error" | "warning" | "filtered" | 'override' | 'reset';
 
 export type SimpleDebugEntry = {

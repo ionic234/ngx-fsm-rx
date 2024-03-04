@@ -2,7 +2,8 @@
   "root": true,
   "ignorePatterns": [
     "projects/**/*",
-    "*.spec.ts"
+    "*.spec.ts",
+    "*.module.ts"
   ],
   "overrides": [
     {

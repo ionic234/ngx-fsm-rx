@@ -15,7 +15,7 @@ export class FsmRxStateDiagramComponent implements OnChanges {
   public canvasId: string = `canvas_${this.uniqueDataService.generateUID()}`;
 
   private canvas: ElementRef<HTMLDivElement> | undefined;
-  @ViewChild('canvas', { static: false }) set _canvas(canvas: ElementRef<HTMLDivElement>) {
+  @ViewChild('canvas', { static: false }) private set _canvas(canvas: ElementRef<HTMLDivElement>) {
     this.canvas = canvas;
     if (this.stateDiagramDefinition) {
       this.renderDiagram(this.canvasId, this.stateDiagramDefinition, canvas.nativeElement);
@@ -34,7 +34,7 @@ export class FsmRxStateDiagramComponent implements OnChanges {
     id: string,
     stateDiagramDefinition: string,
     nativeElement: HTMLDivElement
-  ) {
+  ): Promise<void> {
     const { svg } = await mermaid.render(id, stateDiagramDefinition);
     nativeElement.innerHTML = svg;
   }
