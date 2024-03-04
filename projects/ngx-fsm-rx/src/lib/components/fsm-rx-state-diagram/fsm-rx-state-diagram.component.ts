@@ -1,4 +1,4 @@
-/*eslint-disable*/
+
 import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import mermaid from 'mermaid';
 import { UniqueDataService } from '../../services/unique-data/unique-data.service';

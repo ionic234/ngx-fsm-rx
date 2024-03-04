@@ -1,7 +1,5 @@
-
-/*eslint-disable*/
 import { Component, Input } from '@angular/core';
-import { TransitionResult, TransitionTypes } from 'fsm-rx';
+import { TransitionTypes } from 'fsm-rx';
 
 
 export type DebugEntryResult = "success" | "error" | "warning" | "filtered" | 'override' | 'reset';
@@ -20,7 +18,5 @@ export type SimpleDebugEntry = {
   styleUrls: ['./fsm-rx-debug-log.component.scss']
 })
 export class FsmRxDebugLogComponent {
-
   @Input() public debugLog: SimpleDebugEntry[] = [];
-
 }

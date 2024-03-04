@@ -22,7 +22,7 @@ interface TestCanLeaveToStatesMap extends CanLeaveToStatesMap<TestStates> {
 
 describe("FsmRX Component lifecycle", () => {
   @Component({
-    selector: 'fsm-component',
+    selector: 'fsm-rx-component',
     template: '',
   })
   class FsmSRXComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> {

@@ -1,5 +1,4 @@
 
-/*eslint-disable*/
 import { Injectable } from '@angular/core';
 
 export interface UniqueCustomData<T = void> {
@@ -12,8 +11,6 @@ export interface UniqueCustomData<T = void> {
   providedIn: 'root'
 })
 export class UniqueDataService {
-
-  constructor() { }
 
   public generateUID(): string {
     return crypto.randomUUID();

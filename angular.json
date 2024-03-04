@@ -7,7 +7,7 @@
       "projectType": "library",
       "root": "projects/ngx-fsm-rx",
       "sourceRoot": "projects/ngx-fsm-rx/src",
-      "prefix": "lib",
+      "prefix": "fsm-rx",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -31,10 +31,30 @@
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "karmaConfig": "projects/ngx-fsm-rx/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/ngx-fsm-rx/**/*.ts",
+              "projects/ngx-fsm-rx/**/*.html"
             ]
           }
         }
+      },
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
       }
     }
+  },
+  "cli": {
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

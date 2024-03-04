@@ -1,27 +1,27 @@
-/*eslint-disable*/
-import { Component, ContentChild, Input } from '@angular/core';
-import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, FsmRxComponent, TransitionResult } from 'fsm-rx';
+
+import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
+import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, TransitionResult } from 'fsm-rx';
 import { SimpleDebugEntry } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
 import { Subject, takeUntil } from 'rxjs';
+import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
 
 export type DebugLogResult = "success" | "error" | "warning" | "filtered" | 'override' | 'reset';
-
 
 @Component({
   selector: 'fsm-rx-debug-set',
   templateUrl: './fsm-rx-debug-set.component.html',
   styleUrls: ['./fsm-rx-debug-set.component.scss']
 })
-export class FsmRxDebugSetComponent {
+export class FsmRxDebugSetComponent implements OnDestroy {
 
   public debugLog: SimpleDebugEntry[] | undefined = undefined;
   public stateDiagramDefinition: string | undefined = undefined;
 
   private destroy$: Subject<void> = new Subject();
 
-  @Input() debugLogKeys: string[] = ["state"];
+  @Input() public debugLogKeys: string[] = ["state"];
 
-  @ContentChild('fsmRxComponent', { static: false }) set _fsmRxComponent(fsmRxComponent: FsmRxComponent<string, BaseStateData<string>, CanLeaveToStatesMap<string>>) {
+  @ContentChild('fsmRxComponent', { static: false }) private set _fsmRxComponent(fsmRxComponent: FsmRxComponent<string, BaseStateData<string>, CanLeaveToStatesMap<string>>) {
 
     fsmRxComponent?.outputStateDiagramDefinition.pipe(takeUntil(this.destroy$)).subscribe((stateDiagramDefinition: string | undefined) => {
       this.stateDiagramDefinition = stateDiagramDefinition;
@@ -65,9 +65,7 @@ export class FsmRxDebugSetComponent {
       }
       return rData;
     }, {});
-    let string = JSON.stringify(pulledData, null, 1);
-    return string;
-
+    return JSON.stringify(pulledData, null, 1);
   }
 
   private formatTimestamp(timeStamp: number): string {

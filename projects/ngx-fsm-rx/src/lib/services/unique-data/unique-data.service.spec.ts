@@ -1,5 +1,5 @@
 
-/*
+
 import { TestBed } from '@angular/core/testing';
 import { UniqueDataService } from './unique-data.service';
 
@@ -15,7 +15,7 @@ describe('UniqueDataService', () => {
     expect(service).toBeTruthy();
   });
 });
-
+/*
 
 import { TestBed } from '@angular/core/testing';
 import { UniqueCustomEvent, UniqueDataService } from './unique-data.service';

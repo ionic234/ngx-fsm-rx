@@ -1,9 +1,9 @@
 
 import { AfterViewInit, Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, Output, SimpleChanges, isDevMode } from "@angular/core";
 import deepEqual from "deep-equal";
-import { Subject, Subscription, takeUntil } from "rxjs";
-import { FsmRxInjectable } from "../fsm-rx-injectable/fsm-rx-injectable";
 import { BaseStateData, CanLeaveToStatesMap, CurrentStateInfo, DebugLogEntry, FSMInit, FSMInitStateData, StateOverride } from "fsm-rx";
+import { Subscription, takeUntil } from "rxjs";
+import { FsmRxInjectable } from "../fsm-rx-injectable/fsm-rx-injectable";
 import { FsmComponentConfig } from "./fsm-rx-component.types";
 
 /**
