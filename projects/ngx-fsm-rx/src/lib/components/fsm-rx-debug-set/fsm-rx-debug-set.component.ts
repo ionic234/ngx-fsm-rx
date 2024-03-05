@@ -1,12 +1,15 @@
 
 import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
 import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, TransitionResult } from 'fsm-rx';
-import { SimpleDebugEntry } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
+import { SimpleDebugEntry, DebugEntryResult } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
 import { Subject, takeUntil } from 'rxjs';
 import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
 
-export type DebugLogResult = "success" | "error" | "warning" | "filtered" | 'override' | 'reset';
 
+/**
+ * An Angular Component that wraps around an FsmRxComponent. 
+ * It contains an FsmRxStateDiagramComponent and FsmRxDebugLogComponent which are useful for debugging in playground/testing environments such as Storybook. 
+ */
 @Component({
   selector: 'fsm-rx-debug-set',
   templateUrl: './fsm-rx-debug-set.component.html',
@@ -21,6 +24,10 @@ export class FsmRxDebugSetComponent implements OnDestroy {
 
   @Input() public debugLogKeys: string[] = ["state"];
 
+  /**
+   * A setter for _fsmRxComponent that executes when a child containing a #fsmRxComponent reference is found. 
+   * It automatically subscribes to the FsmRxComponents stateDiagramDefinition and debugLog event emitters.
+   */
   @ContentChild('fsmRxComponent', { static: false }) private set _fsmRxComponent(fsmRxComponent: FsmRxComponent<string, BaseStateData<string>, CanLeaveToStatesMap<string>>) {
 
     fsmRxComponent?.outputStateDiagramDefinition.pipe(takeUntil(this.destroy$)).subscribe((stateDiagramDefinition: string | undefined) => {
@@ -33,12 +40,17 @@ export class FsmRxDebugSetComponent implements OnDestroy {
 
   }
 
+  /**
+   * Processes the debugLog of the target FsmRxComponent into the SimpleDebugEntry format for rendering in a FsmRxDebugLogComponent.
+   * @param debugLog The debugLog of the target FsmRxComponent.
+   * @returns An array containing the simpleDebugEntries for rendering in a FsmRxDebugLogComponent
+   */
   private processDebugLog(debugLog: DebugLogEntry<string, BaseStateData<string>>[]): SimpleDebugEntry[] {
     return debugLog.reduce((rData: SimpleDebugEntry[], entry: DebugLogEntry<string, BaseStateData<string>>) => {
       rData.push({
         time: this.formatTimestamp(entry.timeStamp),
         type: entry.transitionType,
-        data: typeof (entry.stateData) === "string" ? entry.stateData : this.formatStateData(entry.stateData, this.debugLogKeys),
+        data: typeof (entry.stateData) === "string" ? entry.stateData : this.formatEntryStateData(entry.stateData, this.debugLogKeys),
         message: entry.message,
         result: this.getDebugEntryResult(entry.result)
       });
@@ -46,28 +58,52 @@ export class FsmRxDebugSetComponent implements OnDestroy {
     }, []).reverse();
   }
 
-  private getDebugEntryResult(transitionResult: TransitionResult): DebugLogResult {
-    if (transitionResult === "success") { return 'success'; }
-    if (transitionResult === "override") { return 'override'; }
-    if (transitionResult === "reset") { return "reset"; }
-    if (transitionResult === "internal_error" || transitionResult === "unknown_error") { return "error"; }
-    if (transitionResult === "repeat_update_filtered") { return "filtered"; }
-    return 'warning';
+  /**
+   * Transforms the supplied TransitionResult into the simplified DebugEntryResult.
+   * @param transitionResult The transitionResult of a DebugLogEntry
+   * @returns A DebugEntryResult
+   */
+  private getDebugEntryResult(transitionResult: TransitionResult): DebugEntryResult {
+    switch (transitionResult) {
+      case "success":
+        return "success";
+      case "override":
+        return "override";
+      case "reset":
+        return 'reset';
+      case "internal_error":
+        return 'error';
+      case "unknown_error":
+        return "error";
+      default:
+        return 'warning';
+    }
   }
 
-  private formatStateData(
-    transitionData: Record<string, unknown>,
+  /**
+   * Transforms the stateData into a string containing only the items specified in debugLogKeys. 
+   * @param stateData The data to be processed.
+   * @param debugLogKeys An array of keys to include in the returned string. 
+   * @returns A string representation of the StateData containing only the keys specified in debugLogKeys. 
+   */
+  private formatEntryStateData(
+    stateData: Record<string, unknown>,
     debugLogKeys: string[]): string {
 
     const pulledData = debugLogKeys.reduce((rData: Record<string, unknown>, key: string) => {
-      if (key in transitionData) {
-        rData[key] = transitionData[key] ?? null;
+      if (key in stateData) {
+        rData[key] = stateData[key] ?? null;
       }
       return rData;
     }, {});
     return JSON.stringify(pulledData, null, 1);
   }
 
+  /**
+   * Formats the supplied timestamp as HH:MM:SS:MMM AM/PM 
+   * @param timeStamp The timestamp to format.
+   * @returns A string representation off the timestamp in HH:MM:SS:MMM AM/PM format. 
+   */
   private formatTimestamp(timeStamp: number): string {
     const date = new Date(timeStamp);
     const formatter = new Intl.DateTimeFormat('en-AU', {
@@ -79,6 +115,10 @@ export class FsmRxDebugSetComponent implements OnDestroy {
     return formatter.format(date);
   }
 
+  /**
+   * Implementation of the OnDestroy lifecycle hook.<br>
+   * Calls destroy to complete and unsubscribes from the FSMs observables and behavior subjects.
+   */
   public ngOnDestroy(): void {
     this.destroy$.next();
   }

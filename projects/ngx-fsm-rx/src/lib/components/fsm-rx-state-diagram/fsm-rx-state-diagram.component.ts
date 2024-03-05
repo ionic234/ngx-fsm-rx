@@ -3,6 +3,9 @@ import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } fro
 import mermaid from 'mermaid';
 import { UniqueDataService } from '../../services/unique-data/unique-data.service';
 
+/** 
+ * 
+ */
 @Component({
   selector: 'fsm-rx-state-diagram',
   templateUrl: './fsm-rx-state-diagram.component.html',
@@ -10,11 +13,14 @@ import { UniqueDataService } from '../../services/unique-data/unique-data.servic
 })
 export class FsmRxStateDiagramComponent implements OnChanges {
 
-  @Input({ required: true }) public stateDiagramDefinition!: string;
+  @Input() public stateDiagramDefinition!: string;
 
-  public canvasId: string = `canvas_${this.uniqueDataService.generateUID()}`;
+  public canvasId: string = `canvas_${this.uniqueDataService.generateUUID()}`;
 
   private canvas: ElementRef<HTMLDivElement> | undefined;
+  /**
+   *
+   */
   @ViewChild('canvas', { static: false }) private set _canvas(canvas: ElementRef<HTMLDivElement>) {
     this.canvas = canvas;
     if (this.stateDiagramDefinition) {
@@ -22,15 +28,30 @@ export class FsmRxStateDiagramComponent implements OnChanges {
     }
   }
 
+  /**
+   * Constructor for FsmRxStateDiagramComponent
+   * @param uniqueDataService Inject the UniqueDataService for use in the component. 
+   */
   public constructor(private uniqueDataService: UniqueDataService) { }
 
+  /**
+   * Implementation of the OnChanges lifecycle hook. 
+   * Renders the diagram when the stateDiagramDefinition changes. 
+   * @param changes  The changes angular has detected. 
+   */
   public ngOnChanges(changes: SimpleChanges): void {
     if (this.canvas && changes["stateDiagramDefinition"] && changes["stateDiagramDefinition"].currentValue) {
       this.renderDiagram(this.canvasId, changes["stateDiagramDefinition"].currentValue, this.canvas.nativeElement);
     }
   }
 
-  private async renderDiagram(
+  /**
+   * Render the State Diagram in mermaid format. Can be overridden to use a different diagram rendering engine. 
+   * @param id The ID of the canvas to render to. 
+   * @param stateDiagramDefinition The state diagram definition to render. 
+   * @param nativeElement The Native element of the canvas to render to.
+   */
+  protected async renderDiagram(
     id: string,
     stateDiagramDefinition: string,
     nativeElement: HTMLDivElement

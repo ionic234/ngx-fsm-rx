@@ -25,7 +25,7 @@ export abstract class FsmRxComponent<
     @Output() public outputStateDiagramDefinition: EventEmitter<string | undefined> = new EventEmitter();
 
     /** 
-     * Override of the configuration object that controls the availability of certain debugging features.<br>
+     * Override of the configuration object that controls the availability of certain debugging features.
      * This override adds additional options relevant for components. 
      */
     protected override resolvedFsmConfig!: FsmComponentConfig<TState, TStateData, TCanLeaveToStatesMap>;
@@ -37,12 +37,12 @@ export abstract class FsmRxComponent<
 
     /* istanbul ignore next */
     /** 
-     * Constructor for FsmRx.<br> 
+     * Constructor for FsmRx. 
      * It calls functions (via the super chain) which create the fsmDebugConfig and construct the observables required for the FSM to function. 
-     * @param fsmConfig An optional partial configuration object which controls the availability of certain debugging features. <br> 
+     * @param fsmConfig An optional partial configuration object which controls the availability of certain debugging features.  
      * By default it is set to {}
-     * @param isInDevMode An Optional boolean which sets whether the application in running in debug mode or not.<br>
-     * By default it is set to the result of calling the angular function isDevMode() <br> 
+     * @param isInDevMode An Optional boolean which sets whether the application in running in debug mode or not.
+     * By default it is set to the result of calling the angular function isDevMode()  
      * It is not recommended to set this value outside of testing. 
      */
     protected constructor(
@@ -71,8 +71,8 @@ export abstract class FsmRxComponent<
     }
 
     /**
-     * Implementation of the AfterViewInit lifecycle hook. <br>
-     * If allowed by the resolvedFsmConfig emits the debugLog and starts the generation of the stateDiagramDefinition<br>
+     * Implementation of the AfterViewInit lifecycle hook. 
+     * If allowed by the resolvedFsmConfig emits the debugLog and starts the generation of the stateDiagramDefinition
      * This is done in the AfterViewInit hook so all listening components have a chance to instantiate before emission. 
      */
     public ngAfterViewInit(): void {
@@ -100,7 +100,7 @@ export abstract class FsmRxComponent<
     }
 
     /**
-     * Implementation of the OnChanges lifecycle hook. <br>
+     * Implementation of the OnChanges lifecycle hook. 
      * Detects and handles changes to the fsmConfig which is important for storybook integration. 
      * @param changes The changes angular has detected. 
      */
@@ -154,8 +154,8 @@ export abstract class FsmRxComponent<
     }
 
     /**
-     * Override of the function that processes the debug log entry and stores it in the _debugLog.<br>
-     * Also makes sure the _debugLog doesn't exceed the debugLogBufferCount specified in the fsmDebugConfig<br>
+     * Override of the function that processes the debug log entry and stores it in the _debugLog.
+     * Also makes sure the _debugLog doesn't exceed the debugLogBufferCount specified in the fsmDebugConfig
      * This override emits the debug log when it is written to. 
      * @param entry The debug log entry to store. 
      */
