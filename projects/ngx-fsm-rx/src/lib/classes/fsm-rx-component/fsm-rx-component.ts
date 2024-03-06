@@ -15,7 +15,7 @@ export abstract class FsmRxComponent<
     TStateData extends BaseStateData<TState>,
     TCanLeaveToStatesMap extends CanLeaveToStatesMap<TState>> extends FsmRxInjectable<TState, TStateData, TCanLeaveToStatesMap> implements OnDestroy, OnChanges, AfterViewInit {
 
-    /** Input for a partial configuration object which controls the availability of certain debugging features. */
+    /** Input for a partial configuration object which controls the availability of certain debugging features. Can only be used in development.*/
     @Input() public fsmConfig: Partial<FsmComponentConfig<TState, TStateData, TCanLeaveToStatesMap>> = {};
 
     /** Output for the array of DebugLogEntry data which represents the outcome of applying a state transition.*/
@@ -106,8 +106,12 @@ export abstract class FsmRxComponent<
      */
     public ngOnChanges(changes: SimpleChanges): void {
 
-        if (changes['fsmConfig']) {
-            if (!this.isInDevMode) { return; }
+        if (changes['fsmConfig'] && (changes['fsmConfig'].firstChange && Object.keys(changes['fsmConfig'].currentValue).length !== 0)) {
+
+            if (!this.isInDevMode) {
+                console.warn("fsmConfig @Input is not supported in production");
+                return;
+            }
             const previousConfig: FsmComponentConfig<TState, TStateData, TCanLeaveToStatesMap> = this.resolvedFsmConfig;
             this.resolvedFsmConfig = this.extractFsmConfig(changes['fsmConfig'].currentValue, this.isInDevMode);
 
