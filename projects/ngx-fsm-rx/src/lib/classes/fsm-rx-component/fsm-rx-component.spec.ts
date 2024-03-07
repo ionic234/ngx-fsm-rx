@@ -1,10 +1,10 @@
 
-import { Component, Inject, SimpleChange, isDevMode } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectorRef, Component, Inject, SimpleChange, isDevMode } from '@angular/core';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import { RunHelpers, TestScheduler } from 'rxjs/testing';
-import { BaseStateData, CanLeaveToStatesMap, FSMInitStateData, FsmConfig, StateMap } from 'fsm-rx';
+import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, FSMInitStateData, FsmConfig, StateMap } from 'fsm-rx';
 import { FsmRxComponent } from './fsm-rx-component';
 import { FsmComponentConfig } from './fsm-rx-component.types';
 
@@ -361,10 +361,11 @@ describe("FsmRX Component input tests", () => {
 
   @Component({
     selector: 'lib-test-host',
-    template: '<fsm-component [fsmConfig]="fsmConfig"></fsm-component>',
+    template: '<fsm-component [fsmConfig]="hostFsmConfig"></fsm-component>',
   })
   class TestHostComponent {
-    public fsmConfig: Partial<FsmComponentConfig<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap>> = {};
+    constructor() { }
+    public hostFsmConfig: Partial<FsmComponentConfig<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap>> = {};
   }
 
   let fixture: ComponentFixture<TestHostComponent>;
@@ -380,6 +381,7 @@ describe("FsmRX Component input tests", () => {
     await TestBed.configureTestingModule({
       declarations: [FsmSRXComponent, TestHostComponent],
       providers: [
+        { provide: 'hostFsmConfig', useValue: {} },
         { provide: 'fsmConfig', useValue: {} },
         { provide: 'isInDevMode', useValue: true }
       ]
@@ -393,18 +395,22 @@ describe("FsmRX Component input tests", () => {
 
   });
 
+  afterEach(() => {
+    jasmine.clock().uninstall();
+  });
+
   it("Should call ngOnChanges when a value for the fsmConfig input is given", () => {
 
     fixture = TestBed.createComponent(TestHostComponent);
     hostComponent = fixture.componentInstance;
     component = fixture.debugElement.query(By.css('fsm-component')).componentInstance;
 
-    const ngOnChangesSpy = spyOn(component, 'ngOnChanges');//.and.callThrough();
+    const ngOnChangesSpy = spyOn(component, 'ngOnChanges');
     let newFsmDebugConfig: Partial<FsmComponentConfig<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap>> = {
       outputStateDiagramDefinition: false,
       outputDebugLog: false
     };
-    hostComponent.fsmConfig = newFsmDebugConfig;
+    hostComponent.hostFsmConfig = newFsmDebugConfig;
     fixture.detectChanges();
     expect(ngOnChangesSpy).toHaveBeenCalledWith({
       fsmConfig: new SimpleChange(undefined, newFsmDebugConfig, true)
@@ -433,7 +439,7 @@ describe("FsmRX Component input tests", () => {
     }, 1);
 
     testScheduler.schedule(() => {
-      hostComponent.fsmConfig = {
+      hostComponent.hostFsmConfig = {
         stateOverride: {
           stateData: { state: "state3" }
         }
@@ -452,7 +458,7 @@ describe("FsmRX Component input tests", () => {
 
   });
 
-  fit("Should emit the debugLog when outputDebugLog is changed to true via the fsmConfig input", () => {
+  it("Should emit the debugLog when outputDebugLog is changed to true via the fsmConfig input", () => {
 
     TestBed.overrideProvider('fsmConfig', {
       useValue: { outputDebugLog: false }
@@ -461,9 +467,10 @@ describe("FsmRX Component input tests", () => {
     fixture = TestBed.createComponent(TestHostComponent);
     hostComponent = fixture.componentInstance;
     component = fixture.debugElement.query(By.css('fsm-component')).componentInstance;
+    fixture.detectChanges();
 
     testScheduler.schedule(() => {
-      hostComponent.fsmConfig = { outputDebugLog: true };
+      hostComponent.hostFsmConfig = { outputDebugLog: true };
       fixture.detectChanges();
     }, 1);
 
@@ -474,8 +481,106 @@ describe("FsmRX Component input tests", () => {
       });
     });
 
+  });
+
+  it("Should emit undefined when outputDebugLog is changed to false via the fsmConfig input", () => {
+
+    TestBed.overrideProvider('fsmConfig', {
+      useValue: { outputDebugLog: true }
+    });
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    hostComponent = fixture.componentInstance;
+    component = fixture.debugElement.query(By.css('fsm-component')).componentInstance;
+    fixture.detectChanges();
+
+    testScheduler.schedule(() => {
+      hostComponent.hostFsmConfig = { outputDebugLog: false };
+      fixture.detectChanges();
+    }, 1);
+
+    testScheduler.run((runHelpers: RunHelpers) => {
+      const { expectObservable } = runHelpers;
+      expectObservable(component.outputDebugLog).toBe('-a', {
+        a: undefined
+      });
+    });
 
   });
 
+  it("Should emit the undefined when outputDebugLog is changed to false via the fsmConfig input", () => {
+
+    TestBed.overrideProvider('fsmConfig', {
+      useValue: { outputDebugLog: true }
+    });
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    hostComponent = fixture.componentInstance;
+    component = fixture.debugElement.query(By.css('fsm-component')).componentInstance;
+    fixture.detectChanges();
+
+    testScheduler.schedule(() => {
+      hostComponent.hostFsmConfig = { outputDebugLog: false };
+      fixture.detectChanges();
+    }, 1);
+
+    testScheduler.run((runHelpers: RunHelpers) => {
+      const { expectObservable } = runHelpers;
+      expectObservable(component.outputDebugLog).toBe('-a', {
+        a: undefined
+      });
+    });
+
+  });
+
+  it("should do crap", () => {
+
+    let outputDebugLogEmission$: Subject<DebugLogEntry<TestStates, BaseStateData<TestStates>>[] | undefined> = new Subject();
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    hostComponent = fixture.componentInstance;
+    component = fixture.debugElement.query(By.css('fsm-component')).componentInstance;
+
+    component.outputDebugLog.subscribe((x) => {
+      outputDebugLogEmission$.next(x ? x.slice() : undefined);
+    });
+
+    fixture.detectChanges();
+
+    testScheduler.schedule(() => {
+      jasmine.clock().tick(1);
+      component.changeState({ state: "state1" });
+    }, 1);
+
+    testScheduler.schedule(() => {
+      jasmine.clock().tick(1);
+      component.changeState({ state: "state2" });
+    }, 2);
+
+    testScheduler.schedule(() => {
+      jasmine.clock().tick(1);
+      hostComponent.hostFsmConfig = { debugLogBufferCount: 1 };
+      fixture.detectChanges();
+    }, 3);
+
+    testScheduler.run((runHelpers: RunHelpers) => {
+      const { expectObservable } = runHelpers;
+      expectObservable(outputDebugLogEmission$).toBe('-abc', {
+        a: [
+          { message: 'success', result: 'success', timeStamp: 441550800000, stateData: { state: 'FSMInit' }, transitionType: 'init' },
+          { message: 'success', result: 'success', timeStamp: 441550800001, stateData: { state: 'state1' }, transitionType: 'change' }
+        ],
+        b: [
+          { message: 'success', result: 'success', timeStamp: 441550800000, stateData: { state: 'FSMInit' }, transitionType: 'init' },
+          { message: 'success', result: 'success', timeStamp: 441550800001, stateData: { state: 'state1' }, transitionType: 'change' },
+          { message: 'success', result: 'success', timeStamp: 441550800002, stateData: { state: 'state2' }, transitionType: 'change' }
+        ],
+        c: [
+          { message: 'success', result: 'success', timeStamp: 441550800002, stateData: { state: 'state2' }, transitionType: 'change' }
+        ]
+      });
+    });
+
+  });
 
 });

@@ -76,7 +76,9 @@ export abstract class FsmRxComponent<
      * This is done in the AfterViewInit hook so all listening components have a chance to instantiate before emission. 
      */
     public ngAfterViewInit(): void {
-        if (this.resolvedFsmConfig.outputDebugLog) { this.outputDebugLog.emit(this.debugLog); }
+        if (this.resolvedFsmConfig.outputDebugLog) {
+            this.outputDebugLog.emit(this.debugLog);
+        }
         if (this.resolvedFsmConfig.outputStateDiagramDefinition) { this.startStateDiagramDefinitionOutput(); }
     }
 
@@ -106,12 +108,16 @@ export abstract class FsmRxComponent<
      */
     public ngOnChanges(changes: SimpleChanges): void {
 
-        if (changes['fsmConfig'] && (changes['fsmConfig'].firstChange && Object.keys(changes['fsmConfig'].currentValue).length !== 0)) {
+        if (changes['fsmConfig']) {
 
             if (!this.isInDevMode) {
                 console.warn("fsmConfig @Input is not supported in production");
                 return;
             }
+
+            /* istanbul ignore next */
+            if (changes['fsmConfig'].firstChange && Object.keys(changes['fsmConfig'].currentValue).length === 0) { return; }
+
             const previousConfig: FsmComponentConfig<TState, TStateData, TCanLeaveToStatesMap> = this.resolvedFsmConfig;
             this.resolvedFsmConfig = this.extractFsmConfig(changes['fsmConfig'].currentValue, this.isInDevMode);
 
@@ -123,7 +129,9 @@ export abstract class FsmRxComponent<
 
             if (previousConfig.debugLogBufferCount !== this.resolvedFsmConfig.debugLogBufferCount) {
                 this.capDebugLogLength(this.resolvedFsmConfig.debugLogBufferCount);
-                this.outputDebugLog.emit(this.debugLog);
+                if (this.resolvedFsmConfig.outputDebugLog) {
+                    this.outputDebugLog.emit(this.debugLog);
+                }
             }
 
             if (previousConfig.outputStateDiagramDefinition !== this.resolvedFsmConfig.outputStateDiagramDefinition) {
@@ -165,7 +173,9 @@ export abstract class FsmRxComponent<
      */
     protected override writeToDebugLog(entry: DebugLogEntry<TState, TStateData>): void {
         super.writeToDebugLog(entry);
-        if (this.resolvedFsmConfig.outputDebugLog && this.outputDebugLog) { this.outputDebugLog.emit(this.debugLog); }
+        if (this.resolvedFsmConfig.outputDebugLog && this.outputDebugLog) {
+            this.outputDebugLog.emit(this.debugLog);
+        }
     }
 
 }
