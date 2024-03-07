@@ -5,28 +5,11 @@ import { UniqueDataService } from './unique-data.service';
 
 describe('UniqueDataService', () => {
   let service: UniqueDataService;
+  const uuid: `${string}-${string}-${string}-${string}-${string}` = "502910c1-e1b0-454d-8fc7-053ec0e583d3";
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(UniqueDataService);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
-/*
-
-import { TestBed } from '@angular/core/testing';
-import { UniqueCustomEvent, UniqueDataService } from './unique-data.service';
-
-describe('UniqueDataService', () => {
-  let service: UniqueDataService;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [UniqueDataService],
-    });
+    spyOn(crypto, 'randomUUID').and.returnValue(uuid);
     service = TestBed.inject(UniqueDataService);
   });
 
@@ -34,31 +17,16 @@ describe('UniqueDataService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should generate a UID of the specified length', () => {
-    const length = 10;
-    const uid = service.generateUID(length);
-    expect(uid.length).toBe(length);
+  it('should return a UUID', () => {
+    expect(service.generateUUID()).toEqual(uuid);
   });
 
-  it('should generate a non-empty UID if length is not specified', () => {
-    const uid = service.generateUID();
-    expect(uid.length).toBeGreaterThan(0);
-  });
-
-  it('should generate a UniqueCustomEvent object', () => {
-    const timestamp: number = 441633600000;
-    const customEvent: UniqueCustomEvent = service.generateUniqueCustomEvent();
-
-    //spyOn(Math, 'random').and.returnValue(0.5);
-    //spyOn(Date, 'now').and.returnValue(timestamp);
-
-    console.log('Generated custom event:', customEvent);
-
-    expect(customEvent).toEqual({
-      timestamp,
-      id: "2732e3"
+  it('Should generate UniqueCustomData', () => {
+    let data = "someData";
+    expect(service.generateUniqueCustomData(data)).toEqual({
+      uuid,
+      data
     });
   });
 
 });
-*/

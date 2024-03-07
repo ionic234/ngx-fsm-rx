@@ -1,10 +1,8 @@
-
 import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
 import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, TransitionResult } from 'fsm-rx';
-import { SimpleDebugEntry, DebugEntryResult } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
 import { Subject, takeUntil } from 'rxjs';
 import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
-
+import { DebugEntryResult, SimpleDebugEntry } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
 
 /**
  * An Angular Component that wraps around an FsmRxComponent. 
@@ -30,11 +28,16 @@ export class FsmRxDebugSetComponent implements OnDestroy {
    */
   @ContentChild('fsmRxComponent', { static: false }) private set _fsmRxComponent(fsmRxComponent: FsmRxComponent<string, BaseStateData<string>, CanLeaveToStatesMap<string>>) {
 
-    fsmRxComponent?.outputStateDiagramDefinition.pipe(takeUntil(this.destroy$)).subscribe((stateDiagramDefinition: string | undefined) => {
+    if (!fsmRxComponent || fsmRxComponent.outputStateDiagramDefinition === undefined || fsmRxComponent.outputDebugLog === undefined) {
+      console.error("A Content Child that extends FsmRxComponent must be supplied with a #fsmRxComponent template reference.");
+      return;
+    }
+
+    fsmRxComponent.outputStateDiagramDefinition.pipe(takeUntil(this.destroy$)).subscribe((stateDiagramDefinition: string | undefined) => {
       this.stateDiagramDefinition = stateDiagramDefinition;
     });
 
-    fsmRxComponent?.outputDebugLog.subscribe((debugLog: DebugLogEntry<string, BaseStateData<string>>[] | undefined) => {
+    fsmRxComponent.outputDebugLog.subscribe((debugLog: DebugLogEntry<string, BaseStateData<string>>[] | undefined) => {
       this.debugLog = debugLog ? this.processDebugLog(debugLog) : undefined;
     });
 

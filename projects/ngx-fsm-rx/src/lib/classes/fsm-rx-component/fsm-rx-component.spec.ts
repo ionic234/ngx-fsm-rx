@@ -1,10 +1,10 @@
 
-import { ChangeDetectorRef, Component, Inject, SimpleChange, isDevMode } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Component, Inject, SimpleChange } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, FSMInitStateData, StateMap } from 'fsm-rx';
 import { Observable, Subject } from "rxjs";
 import { RunHelpers, TestScheduler } from 'rxjs/testing';
-import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, FSMInitStateData, FsmConfig, StateMap } from 'fsm-rx';
 import { FsmRxComponent } from './fsm-rx-component';
 import { FsmComponentConfig } from './fsm-rx-component.types';
 
@@ -22,10 +22,10 @@ interface TestCanLeaveToStatesMap extends CanLeaveToStatesMap<TestStates> {
 
 describe("FsmRX Component lifecycle", () => {
   @Component({
-    selector: 'fsm-rx-component',
+    selector: 'test-fsm-rx-component',
     template: '',
   })
-  class FsmSRXComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> {
+  class TestFsmRxComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> {
     protected override stateMap: StateMap<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> = {
       state1: {
         canLeaveToStates: { state2: true },
@@ -50,17 +50,17 @@ describe("FsmRX Component lifecycle", () => {
 
   }
 
-  let fixture: ComponentFixture<FsmSRXComponent>;
-  let component: FsmSRXComponent;
+  let fixture: ComponentFixture<TestFsmRxComponent>;
+  let component: TestFsmRxComponent;
   let testScheduler: TestScheduler;
 
   beforeEach(async () => {
 
     await TestBed.configureTestingModule({
-      declarations: [FsmSRXComponent],
+      declarations: [TestFsmRxComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     testScheduler = new TestScheduler((actual, expected) => {
@@ -91,7 +91,7 @@ describe("FsmRx FsmComponentConfig", () => {
     selector: 'fsm-rx-component',
     template: '',
   })
-  class FsmSRXComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> {
+  class TestFsmRxComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> {
     protected override stateMap: StateMap<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> = {
       state1: {
         canLeaveToStates: { state2: true },
@@ -126,8 +126,8 @@ describe("FsmRx FsmComponentConfig", () => {
     }
   }
 
-  let fixture: ComponentFixture<FsmSRXComponent>;
-  let component: FsmSRXComponent;
+  let fixture: ComponentFixture<TestFsmRxComponent>;
+  let component: TestFsmRxComponent;
   let testScheduler: TestScheduler;
 
   beforeEach(async () => {
@@ -142,7 +142,7 @@ describe("FsmRx FsmComponentConfig", () => {
     });
 
     await TestBed.configureTestingModule({
-      declarations: [FsmSRXComponent],
+      declarations: [TestFsmRxComponent],
       providers: [
         { provide: 'fsmConfig', useValue: {} },
         { provide: 'isInDevMode', useValue: true }
@@ -157,7 +157,7 @@ describe("FsmRx FsmComponentConfig", () => {
 
   it("Should create the default dev mode config when given no values and isInDevMode is true", () => {
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
     expect(component.resolvedFSMDebugConfig).toEqual(
       {
@@ -185,7 +185,7 @@ describe("FsmRx FsmComponentConfig", () => {
       }
     });
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
     expect(component.resolvedFSMDebugConfig).toEqual(
       {
@@ -207,7 +207,7 @@ describe("FsmRx FsmComponentConfig", () => {
   it("Should create the default production mode config when given no values and isInDevMode is false", () => {
 
     TestBed.overrideProvider('isInDevMode', { useValue: false });
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
     expect(component.resolvedFSMDebugConfig).toEqual(
       {
@@ -234,7 +234,7 @@ describe("FsmRx FsmComponentConfig", () => {
       }
     });
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
     expect(component.resolvedFSMDebugConfig).toEqual(
       {
@@ -255,7 +255,7 @@ describe("FsmRx FsmComponentConfig", () => {
 
   it("Should emit the debug log if outputDebugLog in the config is true", () => {
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     spyOn(component.outputDebugLog, 'emit');
@@ -271,7 +271,7 @@ describe("FsmRx FsmComponentConfig", () => {
       }
     });
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     spyOn(component.outputDebugLog, 'emit');
@@ -282,7 +282,7 @@ describe("FsmRx FsmComponentConfig", () => {
   it("Should emit the State Diagram Definition if outputDebugLog in the outputStateDiagramDefinition is true", () => {
 
     let expectedString: string = "stateDiagram-v2\ndirection TB\n[*] --> FSMInit\nFSMInit:::highlight --> state1\nstate1 --> state2\nstate2 --> state3\nstate3 --> state1\nclassDef highlight font-weight:bold,stroke-width:3px,fill:#c6c6f9,stroke:#7d4ce1";
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     spyOn(component.outputStateDiagramDefinition, 'emit');
@@ -293,7 +293,7 @@ describe("FsmRx FsmComponentConfig", () => {
 
   it("Should emit the State Diagram Definition if outputDebugLog in the outputStateDiagramDefinition is true on every state change", () => {
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     let outputStateDiagramDefinition$: Subject<string | undefined> = new Subject();
@@ -337,7 +337,7 @@ describe("FsmRx FsmComponentConfig", () => {
       }
     });
 
-    fixture = TestBed.createComponent(FsmSRXComponent);
+    fixture = TestBed.createComponent(TestFsmRxComponent);
     component = fixture.componentInstance;
 
     spyOn(component.outputStateDiagramDefinition, 'emit');
@@ -353,7 +353,7 @@ describe("FsmRX Component input tests", () => {
     selector: 'fsm-component',
     template: '',
   })
-  class FsmSRXComponent extends FsmRxComponent<
+  class TestFsmRxComponent extends FsmRxComponent<
     TestStates,
     BaseStateData<TestStates>,
     TestCanLeaveToStatesMap
@@ -402,13 +402,14 @@ describe("FsmRX Component input tests", () => {
     template: '<fsm-component [fsmConfig]="hostFsmConfig"></fsm-component>',
   })
   class TestHostComponent {
-    constructor() { }
     public hostFsmConfig: Partial<FsmComponentConfig<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap>> = {};
+    constructor() { }
+
   }
 
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
-  let component: FsmSRXComponent;
+  let component: TestFsmRxComponent;
   let testScheduler: TestScheduler;
 
   beforeEach(async () => {
@@ -417,9 +418,8 @@ describe("FsmRX Component input tests", () => {
     jasmine.clock().mockDate(new Date(1983, 11, 30));
 
     await TestBed.configureTestingModule({
-      declarations: [FsmSRXComponent, TestHostComponent],
+      declarations: [TestFsmRxComponent, TestHostComponent],
       providers: [
-        { provide: 'hostFsmConfig', useValue: {} },
         { provide: 'fsmConfig', useValue: {} },
         { provide: 'isInDevMode', useValue: true }
       ]

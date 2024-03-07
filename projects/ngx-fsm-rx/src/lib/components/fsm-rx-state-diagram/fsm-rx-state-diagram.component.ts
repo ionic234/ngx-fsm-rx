@@ -4,7 +4,7 @@ import mermaid from 'mermaid';
 import { UniqueDataService } from '../../services/unique-data/unique-data.service';
 
 /** 
- * 
+ * An angular component for rendering state diagrams using mermaid.  
  */
 @Component({
   selector: 'fsm-rx-state-diagram',
@@ -19,11 +19,12 @@ export class FsmRxStateDiagramComponent implements OnChanges {
 
   private canvas: ElementRef<HTMLDivElement> | undefined;
   /**
-   *
+   * A setter for _canvas that executes when a child containing #canvas is found.
+   * It will automatically render a state diagram if one is set via the stateDiagramDefinition @Input on discovery. 
    */
   @ViewChild('canvas', { static: false }) private set _canvas(canvas: ElementRef<HTMLDivElement>) {
     this.canvas = canvas;
-    if (this.stateDiagramDefinition) {
+    if (this.canvas && this.stateDiagramDefinition) {
       this.renderDiagram(this.canvasId, this.stateDiagramDefinition, canvas.nativeElement);
     }
   }
@@ -50,14 +51,17 @@ export class FsmRxStateDiagramComponent implements OnChanges {
    * @param id The ID of the canvas to render to. 
    * @param stateDiagramDefinition The state diagram definition to render. 
    * @param nativeElement The Native element of the canvas to render to.
+   * @returns The svg string
    */
   protected async renderDiagram(
     id: string,
     stateDiagramDefinition: string,
     nativeElement: HTMLDivElement
-  ): Promise<void> {
+  ): Promise<string> {
+    console.log("render the fucker");
     const { svg } = await mermaid.render(id, stateDiagramDefinition);
     nativeElement.innerHTML = svg;
+    return svg;
   }
 
 }
