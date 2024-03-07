@@ -119,8 +119,11 @@ export abstract class FsmRxComponent<
             if (changes['fsmConfig'].firstChange && Object.keys(changes['fsmConfig'].currentValue).length === 0) { return; }
 
             const previousConfig: FsmComponentConfig<TState, TStateData, TCanLeaveToStatesMap> = this.resolvedFsmConfig;
-            this.resolvedFsmConfig = this.extractFsmConfig(changes['fsmConfig'].currentValue, this.isInDevMode);
-
+            this.resolvedFsmConfig = this.extractFsmConfig(
+                {
+                    ...this.resolvedFsmConfig,
+                    ...changes['fsmConfig'].currentValue
+                }, this.isInDevMode);
             this.handlePossibleStateOverrideChange(previousConfig.stateOverride, this.resolvedFsmConfig.stateOverride);
 
             if (previousConfig.outputDebugLog !== this.resolvedFsmConfig.outputDebugLog) {
@@ -140,10 +143,11 @@ export abstract class FsmRxComponent<
             }
 
             if (this.resolvedFsmConfig.outputStateDiagramDefinition && previousConfig.stateDiagramDirection !== this.resolvedFsmConfig.stateDiagramDirection) {
-
                 this.currentState$.subscribe((currentStateInfo: CurrentStateInfo<TState, TStateData, TCanLeaveToStatesMap>) => {
                     this.clearStateDiagramDefinition();
-                    this.outputStateDiagramDefinition.emit(this.getStateDiagramDefinition(currentStateInfo.state as TState | FSMInit));
+                    if (this.resolvedFsmConfig.outputStateDiagramDefinition) {
+                        this.outputStateDiagramDefinition.emit(this.getStateDiagramDefinition(currentStateInfo.state as TState | FSMInit));
+                    }
                 });
             }
         }
