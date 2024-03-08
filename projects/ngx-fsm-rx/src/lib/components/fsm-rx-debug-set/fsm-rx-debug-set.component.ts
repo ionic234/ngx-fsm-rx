@@ -95,7 +95,7 @@ export class FsmRxDebugSetComponent implements OnDestroy {
 
     const pulledData = debugLogKeys.reduce((rData: Record<string, unknown>, key: string) => {
       if (key in stateData) {
-        rData[key] = stateData[key] ?? null;
+        rData[key] = stateData[key];
       }
       return rData;
     }, {});

@@ -1,22 +1,24 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { BaseStateData, CanLeaveToStatesMap, StateMap } from 'fsm-rx';
+import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, StateMap } from 'fsm-rx';
 import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
-import { FsmRxDebugSetComponent } from './fsm-rx-debug-set.component';
-import { FsmRxStateDiagramComponent } from '../fsm-rx-state-diagram/fsm-rx-state-diagram.component';
 import { FsmRxDebugLogComponent } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
+import { FsmRxStateDiagramComponent } from '../fsm-rx-state-diagram/fsm-rx-state-diagram.component';
+import { FsmRxDebugSetComponent } from './fsm-rx-debug-set.component';
 
 
-type TestStatesA = "state1" | "state2";
-type TestStatesB = "state2" | "state3";
-type TestStates = TestStatesA | TestStatesB;
+type TestStates = "state1";
 
 interface TestCanLeaveToStatesMap extends CanLeaveToStatesMap<TestStates> {
   FSMInit: "state1",
-  state1: "state2",
-  state2: "state3",
-  state3: "state1";
+  state1: "FSMTerminate",
+}
+
+interface TestData extends BaseStateData<TestStates> {
+  someString: string,
+  someNumber: number,
+  someBool: boolean;
 }
 
 describe('Template reference tests', () => {
@@ -36,27 +38,17 @@ describe('Template reference tests', () => {
   @Component({
     selector: 'test-fsm-rx-component',
   })
-  class TestFsmRxComponent extends FsmRxComponent<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap>{
-    public test: string = "im a child";
+  class TestFsmRxComponent extends FsmRxComponent<TestStates, TestData, TestCanLeaveToStatesMap>{
 
     public constructor() {
-      console.log("i am alive");
       super({ outputDebugLog: false, outputStateDiagramDefinition: false }, true);
     }
 
-    protected override stateMap: StateMap<TestStates, BaseStateData<TestStates>, TestCanLeaveToStatesMap> = {
+    protected override stateMap: StateMap<TestStates, TestData, TestCanLeaveToStatesMap> = {
       state1: {
-        canLeaveToStates: { state2: true },
-        canEnterFromStates: { FSMInit: true, state3: true }
+        canLeaveToStates: { FSMTerminate: true },
+        canEnterFromStates: { FSMInit: true }
       },
-      state2: {
-        canLeaveToStates: { state3: true },
-        canEnterFromStates: { state1: true }
-      },
-      state3: {
-        canLeaveToStates: { state1: true },
-        canEnterFromStates: { state2: true }
-      }
     };
 
   }
@@ -67,10 +59,18 @@ describe('Template reference tests', () => {
   let testFsmRxComponent: TestFsmRxComponent;
 
   beforeEach(async () => {
+
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(1983, 11, 30));
+
     await TestBed.configureTestingModule({
       declarations: [HostComponent, FsmRxDebugSetComponent, TestFsmRxComponent, FsmRxComponent, HasOutputStateDiagramDefinitionComponent, FsmRxStateDiagramComponent, FsmRxDebugLogComponent]
     }).compileComponents();;
 
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
   });
 
   it('should log an error if a child with the #fsmRxComponent template is not found', () => {
@@ -106,7 +106,7 @@ describe('Template reference tests', () => {
     expect(console.error).toHaveBeenCalledOnceWith("A Content Child that extends FsmRxComponent must be supplied with a #fsmRxComponent template reference.");
   });
 
-  it('should bind the value of stateDiagramDefinition to the testFsmRxComponent.outputStateDiagramDefinition emitter', fakeAsync(() => {
+  it('should bind the value of stateDiagramDefinition to an FsmRxComponent.outputStateDiagramDefinition emitter', () => {
 
     const testString = "TestString";
 
@@ -123,7 +123,348 @@ describe('Template reference tests', () => {
     testFsmRxComponent.outputStateDiagramDefinition.emit(testString);
     fixture.detectChanges();
     expect(debugSetComponent.stateDiagramDefinition).toEqual(testString);
-  }));
+  });
+
+  it('should process the debug log when emitted by an FsmRxComponent.outputDebugLog emitter ', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1",\n "someBool": true,\n "someNumber": 10,\n "someString": "test"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: JSON.stringify(data, null, 1),
+      message: "success",
+      result: "success",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'success' }]);
+
+  });
+
+  it('should set debug log to undefined when FsmRxComponent.outputDebugLog emits undefined', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+    testFsmRxComponent.outputDebugLog.emit(undefined);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual(undefined);
+  });
+
+  it('should filter data object to only include "state" when a value for debugLogKeys is not given', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "success",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'success' }]);
+
+  });
+
+  it('should filter data object to only include the values in debugLogKeys when given', () => {
+
+    TestBed.overrideTemplate(HostComponent, `<fsm-rx-debug-set [debugLogKeys]="['someNumber','someString']"><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>`);
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "someNumber": 10,\n "someString": "test"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "success",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'success' }]);
+
+  });
+
+  it('should correctly filter data object if debugLogKeys contains a key not found in the data', () => {
+
+    TestBed.overrideTemplate(HostComponent, `<fsm-rx-debug-set [debugLogKeys]="['someNumber','someString', 'illegal Key']"><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>`);
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "someNumber": 10,\n "someString": "test"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "success",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'success' }]);
+
+  });
+
+  it('should return the result as "override" when given "override"', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "override",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'override' }]);
+
+  });
+
+  it('should return the result as "reset" when given "reset"', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "reset",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'reset' }]);
+
+  });
+
+  it('should return the result as "error" when given "internal_error"', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "internal_error",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'error' }]);
+
+  });
+
+  it('should return the result as "error" when given "unknown_error"', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "unknown_error",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'error' }]);
+
+  });
+
+  it('should return the result as "warning" when given a TransitionRejectionReasons', () => {
+
+    TestBed.overrideTemplate(HostComponent, "<fsm-rx-debug-set><test-fsm-rx-component #fsmRxComponent></test-fsm-rx-component></fsm-rx-debug-set>");
+    TestBed.overrideComponent(FsmRxDebugLogComponent, { set: { template: '<div></div>' } });
+
+    fixture = TestBed.createComponent(HostComponent);
+    hostComponent = fixture.componentInstance;
+
+    debugSetComponent = fixture.debugElement.query(By.css('fsm-rx-debug-set')).componentInstance;
+    testFsmRxComponent = fixture.debugElement.query(By.css('test-fsm-rx-component')).componentInstance;
+
+    fixture.detectChanges();
+
+    const data: TestData = {
+      state: "state1",
+      someBool: true,
+      someNumber: 10,
+      someString: "test"
+    };
+
+    let dataAsString = '{\n "state": "state1"\n}';
+
+    const entryToEmit: DebugLogEntry<TestStates, TestData> = {
+      stateData: data,
+      message: "success",
+      result: "illegal_change_same_state",
+      timeStamp: Date.now(),
+      transitionType: 'change'
+    };
+
+    testFsmRxComponent.outputDebugLog.emit([entryToEmit]);
+    fixture.detectChanges();
+    expect(debugSetComponent.debugLog).toEqual([{ time: '12:00:00.000 am', type: 'change', data: dataAsString, message: 'success', result: 'warning' }]);
+
+  });
 
 
 
