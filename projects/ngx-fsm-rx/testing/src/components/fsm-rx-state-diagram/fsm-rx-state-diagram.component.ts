@@ -1,7 +1,7 @@
 
 import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import mermaid from 'mermaid';
-import { UniqueDataService } from '../../services/unique-data/unique-data.service';
+import { UniqueDataService } from 'ngx-fsm-rx/utils';
 
 /** 
  * An angular component for rendering state diagrams using mermaid.  

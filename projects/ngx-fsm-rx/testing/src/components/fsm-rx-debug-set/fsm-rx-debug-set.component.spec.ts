@@ -2,11 +2,10 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, StateMap } from 'fsm-rx';
-import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
-import { FsmRxDebugLogComponent } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
-import { FsmRxStateDiagramComponent } from '../fsm-rx-state-diagram/fsm-rx-state-diagram.component';
-import { FsmRxDebugSetComponent } from './fsm-rx-debug-set.component';
-
+import { FsmRxComponent } from 'ngx-fsm-rx/src/lib/classes/fsm-rx-component/fsm-rx-component';
+import { FsmRxDebugLogComponent } from 'ngx-fsm-rx/testing';
+import { FsmRxStateDiagramComponent } from 'ngx-fsm-rx/testing';
+import { FsmRxDebugSetComponent } from 'ngx-fsm-rx/testing';
 
 type TestStates = "state1";
 

@@ -1,7 +1,7 @@
 import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
 import { BaseStateData, CanLeaveToStatesMap, DebugLogEntry, TransitionResult } from 'fsm-rx';
 import { Subject, takeUntil } from 'rxjs';
-import { FsmRxComponent } from '../../classes/fsm-rx-component/fsm-rx-component';
+import { FsmRxComponent } from 'ngx-fsm-rx';
 import { DebugEntryResult, SimpleDebugEntry } from '../fsm-rx-debug-log/fsm-rx-debug-log.component';
 
 /**

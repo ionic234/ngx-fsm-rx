@@ -13,7 +13,10 @@
     "sourceMap": true,
     "paths": {
       "ngx-fsm-rx": [
-        "dist/ngx-fsm-rx"
+        "./projects/ngx-fsm-rx/"
+      ],
+      "ngx-fsm-rx/*": [
+        "./projects/ngx-fsm-rx/*"
       ]
     },
     "declaration": false,
