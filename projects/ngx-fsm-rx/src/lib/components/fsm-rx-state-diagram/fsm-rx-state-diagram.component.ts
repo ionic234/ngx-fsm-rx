@@ -58,7 +58,6 @@ export class FsmRxStateDiagramComponent implements OnChanges {
     stateDiagramDefinition: string,
     nativeElement: HTMLDivElement
   ): Promise<string> {
-    console.log("render the fucker");
     const { svg } = await mermaid.render(id, stateDiagramDefinition);
     nativeElement.innerHTML = svg;
     return svg;

@@ -1,8 +1,9 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "scripts": {
-    "build": "ng build",
+    "build:dev": "ng build",
+    "build": "ng build ngx-fsm-rx --configuration='production'",
     "build:pipe": "npm run lint && npm run test:ci && npm run compodoc:build && npm run build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -12,15 +13,16 @@
     "compodoc:build": "compodoc -p tsconfig.doc.json --disablePrivate",
     "compodoc:build-dev": "compodoc -p tsconfig.doc.json",
     "compodoc:serve": "compodoc -p tsconfig.doc.json -s -w --disablePrivate ",
+    "clean:angular": "ng cache clean",
     "compodoc:serve-dev": "compodoc -p tsconfig.doc.json -s -w -open",
     "clean:node-modules": "if exist node_modules rd /s /q node_modules",
     "clean:coverage": "if exist coverage rd /s /q coverage",
     "clean:docs": "if exist documentation rd /s /q documentation",
     "clean:dist": "if exist dist rd /s /q dist",
-    "clean": "npm run clean:coverage && npm run clean:docs  && npm run clean:dist",
-    "reinstall": "npm run clean && npm run clean:node-modules && npm i"
+    "clean": "npm run clean:coverage && npm run clean:docs  && npm run clean:dist && npm run clean:angular",
+    "reinstall": "npm run clean && npm run clean:node-modules && npm i",
+    "publish:verdaccio": "npm run reinstall && npm run build:pipe && cd ./dist/ngx-fsm-rx && npm publish --registry http://localhost:4873/"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^16.2.0",
     "@angular/common": "^16.2.0",
@@ -31,6 +33,7 @@
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
     "deep-equal": "^2.2.3",
+    "fsm-rx": "^1.0.0-alpha.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
