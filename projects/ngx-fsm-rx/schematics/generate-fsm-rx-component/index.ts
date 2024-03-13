@@ -1,25 +1,32 @@
 /*eslint-disable*/
-import { Rule, SchematicContext, Tree, apply, applyTemplates, move, url, chain, mergeWith, externalSchematic, MergeStrategy } from '@angular-devkit/schematics';
+import { normalize, strings } from "@angular-devkit/core";
+import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, mergeWith, move, url } from '@angular-devkit/schematics';
 import { GenerateFsmRxComponentSchema } from './generate-fsm-rx-component';
-import { strings, normalize } from "@angular-devkit/core";
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
     return (_tree: Tree, _context: SchematicContext) => {
+
+        debugger;
+
+        if (options.path === undefined) {
+            options.path = "src";
+        }
+
         const templateSource = apply(
             url('./files'),
             [
                 applyTemplates({
                     classify: strings.classify,
                     dasherize: strings.dasherize,
-                    name: options.name
+                    name: options.name,
+                    type: options.type,
                 }),
                 move(normalize(`/${options.path}/${strings.dasherize(options.name)}`))
             ]
         );
-        console.log(templateSource);
+        console.log(templateSource.toString());
 
         return chain([
-            externalSchematic('@schematics/angular', 'component', options),
             mergeWith(templateSource, MergeStrategy.Overwrite)
         ]);
     };
