@@ -5,9 +5,6 @@ import { strings, normalize } from "@angular-devkit/core";
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
     return (_tree: Tree, _context: SchematicContext) => {
-
-
-        debugger;
         const templateSource = apply(
             url('./files'),
             [
