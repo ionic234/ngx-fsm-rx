@@ -4,6 +4,10 @@
     "ngx-fsm-rx-schematics": {
       "description": "Schematics for installing ngx-fsm-rx and generating NgxFsmRx components and services",
       "factory": "./ngx-fsm-rx-schematics/index#ngxFsmRxSchematics"
+    },
+    "generate-fsm": {
+      "description": "A blank schematic.",
+      "factory": "./generate-fsm/index#generateFsm"
     }
   }
 }
