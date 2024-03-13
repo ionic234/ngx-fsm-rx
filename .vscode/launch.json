@@ -3,6 +3,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "command": "cd ./dist/ngx-fsm-rx && schematics .:ng-add",
+      "name": "Run ng-add",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
       "name": "ng serve",
       "type": "chrome",
       "request": "launch",

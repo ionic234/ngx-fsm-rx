@@ -1,10 +1,10 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "1.0.0-alpha.2",
   "scripts": {
     "build:dev": "ng build",
     "build": "ng build ngx-fsm-rx --configuration='production'",
-    "build:pipe": "npm run lint && npm run test:ci && npm run compodoc:build && npm run build",
+    "build:schematics": "cd ./projects/ngx-fsm-rx && npm run build",
+    "build:pipe": "npm run lint && npm run test:ci && npm run compodoc:build && npm run build && npm run build:schematics",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --browsers=ChromeHeadless --watch=false",
@@ -54,6 +54,7 @@
     "@types/jasmine": "~4.3.0",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.51.0",
     "eslint-plugin-jsdoc": "^48.2.0",
     "jasmine-core": "~4.6.0",

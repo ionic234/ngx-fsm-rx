@@ -1,13 +1,23 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.5",
+  "scripts": {
+    "build": "tsc -p tsconfig.schematics.json",
+    "build:watch": "tsc -p tsconfig.schematics.json --watch",
+    "test": "npm run build && jasmine src/**/*_spec.js",
+    "postbuild": "copyfiles schematics/*/schema.json schematics/*/files/** schematics/collection.json ../../dist/ngx-fsm-rx/"
+  },
+  "ng-add": {
+    "save": "true"
+  },
+  "schematics": "./schematics/collection.json",
   "peerDependencies": {
-    "@angular/common": "^16.2.0",
-    "@angular/core": "^16.2.0",
-    "rxjs": "~7.8.0",
+    "@angular/common": ">=16.2.0",
+    "@angular/core": ">=16.2.0",
+    "rxjs": "^7.8.0",
     "mermaid": "^10.4.0",
     "deep-equal": "^2.2.3",
-    "fsm-rx": "^1.0.0-alpha.1"
+    "fsm-rx": "1.0.0-alpha.1"
   },
   "sideEffects": false
 }
