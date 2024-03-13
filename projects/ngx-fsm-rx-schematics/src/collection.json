@@ -1,0 +1,9 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "ngx-fsm-rx-schematics": {
+      "description": "Schematics for installing ngx-fsm-rx and generating NgxFsmRx components and services",
+      "factory": "./ngx-fsm-rx-schematics/index#ngxFsmRxSchematics"
+    }
+  }
+}
