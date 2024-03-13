@@ -1,10 +1,9 @@
 /*eslint-disable*/
-
 import { Rule, SchematicContext, Tree } from '@angular-devkit/schematics';
 import { NodeDependency, NodeDependencyType, addPackageJsonDependency, getPackageJsonDependency } from '@schematics/angular/utility/dependencies';
 
 export function ngAdd(): Rule {
-    return (tree: Tree, _context: SchematicContext) => {
+    return (tree: Tree, context: SchematicContext) => {
         const dependencies: NodeDependency[] = [
             { type: NodeDependencyType.Dev, name: 'mermaid', version: '^10.4.0' },
             { type: NodeDependencyType.Default, name: 'deep-equal', version: '^2.2.3' },
@@ -15,14 +14,20 @@ export function ngAdd(): Rule {
             try {
                 const existingDependency = getPackageJsonDependency(tree, dependency.name);
                 if (existingDependency && existingDependency.version !== dependency.version) {
-                    _context.logger.warn(`${dependency.name} already exists in package.json with a different version. Skipping.`);
+                    context.logger.warn(`${dependency.name} already exists in package.json with a different version. Skipping.`);
                 } else {
                     addPackageJsonDependency(tree, dependency);
                 }
             } catch (e) {
-                _context.logger.error(`Failed to add ${dependency.name} to package.json: ${(<Error>e).message}`);
+                context.logger.error(`Failed to add ${dependency.name} to package.json: ${(<Error>e).message}`);
             }
         });
+
+        if (getPackageJsonDependency(tree, "storybook")) {
+            context.logger.info("hello");
+
+        }
+
 
         return tree;
     };

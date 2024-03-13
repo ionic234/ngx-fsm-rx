@@ -9,6 +9,12 @@
       "type": "node-terminal"
     },
     {
+      "command": "cd ./dist/ngx-fsm-rx",
+      "name": "Open Debug for schematic testing",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
       "name": "ng serve",
       "type": "chrome",
       "request": "launch",

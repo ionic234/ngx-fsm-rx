@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "$id": "generate-fsm-rx-component",
+    "title": "Generate FsmRx Component",
+    "type": "object",
+    "properties": {
+        "name": {
+            "description": "The name of the component",
+            "type": "string"
+        },
+        "path": {
+            "description": "Path to create the component in",
+            "type": "string",
+            "format": "path",
+            "x-prompt": "Path to create the component in:",
+            "default": "src/app"
+        }
+    },
+    "required": [
+        "name"
+    ]
+}
