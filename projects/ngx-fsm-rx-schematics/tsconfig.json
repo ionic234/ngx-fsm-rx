@@ -24,7 +24,6 @@
       "jasmine",
       "node"
     ],
-    "outDir": "./dist",
   },
   "include": [
     "src/**/*"
