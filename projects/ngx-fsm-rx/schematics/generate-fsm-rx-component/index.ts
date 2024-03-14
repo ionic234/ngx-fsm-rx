@@ -1,30 +1,47 @@
 /*eslint-disable*/
 import { normalize, strings } from "@angular-devkit/core";
-import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, mergeWith, move, url } from '@angular-devkit/schematics';
+import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, mergeWith, move, url, } from '@angular-devkit/schematics';
 import { GenerateFsmRxComponentSchema } from './generate-fsm-rx-component';
+import { StateLifecycleHook } from "fsm-rx";
+import prompts from 'prompts';
+
+
+type Collection = {
+    [key: string]: string[];
+};
+
+type StateChoice = {
+    title: string;
+    value: string;
+    selected: boolean;
+};
+
+type StatesToHook = Record<StateLifecycleHook, string[]>;
+
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
-    return (_tree: Tree, _context: SchematicContext) => {
+    return async (_tree: Tree, context: SchematicContext) => {
 
-        debugger;
+        const fsmStates: string[] = await getStates(context);
+        const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates);
+        const statesToHook: StatesToHook = await getStatesToHook(fsmStates);
 
-        if (options.path === undefined) {
-            options.path = "src";
-        }
+        // Fixes for testing. Remove for release. 
+        if (options.path === undefined) { options.path = "src"; }
 
         const templateSource = apply(
             url('./files'),
             [
                 applyTemplates({
-                    classify: strings.classify,
-                    dasherize: strings.dasherize,
-                    name: options.name,
-                    type: options.type,
+                    ...strings,
+                    ...options,
+                    fsmStates,
+                    canLeaveTo,
+                    statesToHook
                 }),
                 move(normalize(`/${options.path}/${strings.dasherize(options.name)}`))
             ]
         );
-        console.log(templateSource.toString());
 
         return chain([
             mergeWith(templateSource, MergeStrategy.Overwrite)
@@ -32,27 +49,181 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
     };
 }
 
-/*
-import { Component, OnChanges, OnInit } from "@angular/core";
-import type { BaseStateData, OnEnterStateChanges, StateMap } from "fsm-rx";
-import { FsmRxComponent } from "ngx-fsm-rx";
+async function getStates(context: SchematicContext): Promise<string[]> {
+    let fsmStates: string[] = [];
+    let statesAreAcceptable: boolean = false;
+    do {
+        fsmStates = await requestStates(context);
+        statesAreAcceptable = await areStateAcceptable(fsmStates);
 
-@Component({
-    selector: 'lib-<%dasherize(name)%>',
-    templateUrl: './<%dasherize(name)%>.component.html',
-    styleUrls: ['./<%dasherize(name)%>.component.scss']
-})
-export class <%classify(name)%>Component extends FsmRxComponent implements AfterViewInit, OnChanges {
+    } while (!statesAreAcceptable);
+    return fsmStates;
+}
 
-    public constructor() {
-        super();
-    }
+async function requestStates(context: SchematicContext): Promise<string[]> {
+    let states: string[] = [];
+    do {
+        const rawStates = await promptForStates();
+        if (rawStates !== "") {
+            states = await validateStates(rawStates.split(" "), context);
+            states = Array.from(new Set(states));
+        }
+    } while (states.length === 0);
 
-    public override ngAfterViewInit(): void {
-        super.ngAfterViewInit();
-        if (!this.fsmConfig.stateOverride) {
-            this.changeState({ state: "go", stateTimeoutId: undefined, trafficLightTimings: { go: 7000, prepareToStop: 3000, stop: 10000 } });
+    return states;
+}
+
+async function promptForStates(): Promise<string> {
+    const promptAnswer = await prompts([
+        {
+            type: "text",
+            name: "states",
+            message: "Input the name of your FSMs states e.g. state1 state2 state3"
+        }
+    ]);
+    return promptAnswer.states;
+}
+
+async function validateStates(rawStatesArray: string[], context: SchematicContext): Promise<string[]> {
+    // Do this the old fashioned way so invalid states are handled one at a time 
+    let result: string[] = [];
+    for (let i = 0; i < rawStatesArray.length; i++) {
+        let validatedStateName: string = await validateStateName(rawStatesArray[i], context);
+        if (validatedStateName !== "") {
+            result.push(validatedStateName);
         }
     }
+    return result;
 }
-*/
+
+async function validateStateName(rawStateName: string, context: SchematicContext): Promise<string> {
+    rawStateName = rawStateName.trim();
+    while (!isValidStateName(rawStateName, context)) {
+        rawStateName = await promptToFixStateName(rawStateName);
+    }
+    return rawStateName;
+}
+
+function isValidStateName(input: string, context: SchematicContext): boolean {
+
+    if (input === "") { return true; }
+
+    let isAlphaNumeric: boolean = /^[a-zA-Z][a-zA-Z0-9]*$/.test(input);
+    if (!isAlphaNumeric) {
+        context.logger.error(`States must be alphanumeric and start with a letter: "${input}" is invalid.`);
+        return false;
+    }
+    if (input.toLowerCase() === "FSMInit".toLowerCase()) {
+        context.logger.error(`State "FSMInit" is a reserved state and cannot be used.`);
+        return false;
+    }
+    if (input.toLowerCase() === "FSMTerminate".toLowerCase()) {
+        context.logger.error(`State "FSMTerminate" is a reserved state and cannot be used.`);
+        return false;
+    }
+
+    return true;
+}
+
+async function promptToFixStateName(invalidState: string): Promise<string> {
+    const promptAnswer = await prompts([
+        {
+            type: "text",
+            name: "state",
+            message: `Enter a state to replace "${invalidState}" or leave blank to skip.`
+        }
+    ]);
+    let rawStateName = promptAnswer.state;
+    rawStateName = rawStateName.trim();
+    rawStateName = strings.classify(rawStateName);
+    return rawStateName;
+}
+
+async function areStateAcceptable(fsmStates: string[]): Promise<boolean> {
+    const promptAnswer = await prompts([
+        {
+            type: 'confirm',
+            name: 'value',
+            message: `Do you wish continue with the found states "${fsmStates.join(" ")}"`,
+            initial: true
+        }
+    ]);
+
+    return promptAnswer.value;
+}
+
+async function getCanAllLeaveTo(fsmStates: string[]): Promise<Collection> {
+
+    let loopStates: string[] = ["FSMInit", ...fsmStates];
+    const canAllLeaveTo: Collection = {};
+
+    for (let i = 0; i < loopStates.length; i++) {
+        let state = loopStates[i];
+        let canLeaveTo = await promptForCanLeaveTo(state, fsmStates);
+        canAllLeaveTo[state] = canLeaveTo;
+    }
+    return canAllLeaveTo;
+}
+
+async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<string[]> {
+
+    let filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
+    let fsmStatePool = state === "FSMInit" ? filteredStates : [...filteredStates, "FSMTerminate"];
+
+    const choices: StateChoice[] = fsmStatePool.reduce((rData: StateChoice[], x: string) => {
+        rData.push({ title: x, value: x, selected: false });
+        return rData;
+    }, []);
+
+    const promptAnswer = await prompts([
+        {
+            type: 'multiselect',
+            name: 'canLeaveTo',
+            message: state === "FSMInit"
+                ? "What is the initial state(s) of the FSM?"
+                : `What states can "${state}" leave to?`,
+            choices: choices,
+            instructions: false
+        }
+    ]);
+
+    let canLeaveTo: string[] = promptAnswer.canLeaveTo;
+    if (canLeaveTo.length > 0) {
+        return canLeaveTo;
+    }
+    return filteredStates;
+
+}
+
+async function getStatesToHook(fsmStates: string[]): Promise<StatesToHook> {
+
+    const onEnter = await getStatesToHookArray("onEnter", fsmStates);
+    const onLeave = await getStatesToHookArray("onLeave", fsmStates);
+    const onUpdate = await getStatesToHookArray("onUpdate", fsmStates);
+
+    return {
+        onEnter,
+        onLeave,
+        onUpdate,
+    };
+};
+
+async function getStatesToHookArray(stateLifecycleHook: StateLifecycleHook, fsmStates: string[]): Promise<string[]> {
+
+    const choices: StateChoice[] = fsmStates.reduce((rData: StateChoice[], x: string) => {
+        rData.push({ title: x, value: x, selected: false });
+        return rData;
+    }, []);
+
+    const promptAnswer = await prompts([
+        {
+            type: 'multiselect',
+            name: 'statesToHook',
+            message: `Which states require an "${stateLifecycleHook}" lifecycle hook callback`,
+            choices: choices,
+            instructions: false
+        }
+    ]);
+
+    return promptAnswer.statesToHook;
+}

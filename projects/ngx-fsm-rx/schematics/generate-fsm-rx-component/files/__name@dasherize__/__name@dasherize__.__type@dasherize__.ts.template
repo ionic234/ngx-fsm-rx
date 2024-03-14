@@ -1,11 +1,56 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, OnChanges, SimpleChanges } from '@angular/core';
+import { BaseStateData, CurrentStateInfo,<% if (canLeaveTo["FSMInit"].length === 1) { %> FSMInit,<% } %> OnEnterStateChanges, OnLeaveStateChanges, OnUpdateStateChanges, StateMap } from 'fsm-rx';
+import { FsmRxComponent } from 'ngx-fsm-rx';
+
+type <%= classify(name) %>States = "<%= fsmStates.join('" | "') %>";
+
+interface Base<%= classify(name) %>Data extends BaseStateData<<%= classify(name) %>States> {
+    // Data common to all states goes here
+}
+<% for (let i = 0; i < fsmStates.length; i++) { %>
+interface <%= classify(name) %><%=classify(fsmStates[i]) %>Data extends Base<%= classify(name) %>Data {
+    // Data unique to the "<%=classify(fsmStates[i]) %>" state goes here
+}
+<% } %>
+export type <%= classify(name) %>Data = <% fsmStates.forEach((state, i)=>{ %><%= classify(name) %><%=classify(state) %>Data<% if (i !== fsmStates.length-1){ %> | <% } })%>;
+
+export type <%= classify(name) %>CanLeaveToMap = {<% Object.keys(canLeaveTo).forEach((key) => { %>
+    <%= key %>: "<%=canLeaveTo[key].join('" | "') %>";<% });%>
+};
 
 @Component({
     selector: 'lib-<%= dasherize(name) %>',
     templateUrl: './<%= dasherize(name) %>.component.html',
     styleUrls: ['./<%= dasherize(name) %>.component.scss']
 })
-export class <%classify(name)%>Component {
+export class <%=classify(name)%>Component extends FsmRxComponent<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap> implements AfterViewInit, OnChanges {
 
+    protected override stateMap: StateMap<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap> = {<% fsmStates.forEach((state, i)=>{ %> 
+        <%= state %>: {
+            canEnterFromStates: {<% let fromStates = []; Object.keys(canLeaveTo).forEach((key) => { if(canLeaveTo[key].includes(state)){ fromStates.push(key) }})%> <%= fromStates.join(": true, ") %>: true },
+            canLeaveToStates: { <%= canLeaveTo[state].join(": true, ") %>: true },<% if (statesToHook["onEnter"].includes(state)) { %>
+            onEnter: (changes: OnEnterStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %><% if (statesToHook["onLeave"].includes(state)) { %>
+            onLeave: (changes: OnLeaveStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %><% if (statesToHook["onUpdate"].includes(state)) { %>
+            onUpdate: (changes: OnUpdateStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %>
+        }<% if (i !== fsmStates.length-1){ %>,<% } }) %>
+    };
+
+    public constructor() {
+        super();
+    }
+
+    public override ngAfterViewInit(): void {
+        super.ngAfterViewInit();
+        this.currentState$.subscribe((currentStateInfo: CurrentStateInfo<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => {
+            const { state } = currentStateInfo;
+            if (state === "FSMInit") {
+                <% if (canLeaveTo["FSMInit"].length === 1) { %>this.changeState<FSMInit>({ state: "<%= canLeaveTo["FSMInit"] %>" });<% } %>
+            }
+        });
+    }
+
+    public override ngOnChanges(changes: SimpleChanges): void {
+        super.ngOnChanges(changes);
+    }
 
 }

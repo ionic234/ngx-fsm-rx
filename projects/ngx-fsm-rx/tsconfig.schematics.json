@@ -24,7 +24,8 @@
     "types": [
       "jasmine",
       "node"
-    ]
+    ],
+    "esModuleInterop": true
   },
   "include": [
     "schematics/**/*"
