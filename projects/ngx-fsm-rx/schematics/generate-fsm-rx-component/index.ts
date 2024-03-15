@@ -1,6 +1,6 @@
 /*eslint-disable*/
 import { normalize, strings } from "@angular-devkit/core";
-import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, mergeWith, move, url, } from '@angular-devkit/schematics';
+import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, externalSchematic, mergeWith, move, url, } from '@angular-devkit/schematics';
 import { GenerateFsmRxComponentSchema } from './generate-fsm-rx-component';
 import { StateLifecycleHook } from "fsm-rx";
 import prompts from 'prompts';
@@ -42,6 +42,7 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
         );
 
         return chain([
+            externalSchematic("@schematics/angular", "component", options),
             mergeWith(templateSource, MergeStrategy.Overwrite)
         ]);
     };
