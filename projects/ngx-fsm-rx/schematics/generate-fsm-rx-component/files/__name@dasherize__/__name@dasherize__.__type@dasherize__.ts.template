@@ -44,7 +44,7 @@ export class <%=classify(name)%>Component extends FsmRxComponent<<%= classify(na
         this.currentState$.subscribe((currentStateInfo: CurrentStateInfo<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => {
             const { state } = currentStateInfo;
             if (state === "FSMInit") {
-                <% if (canLeaveTo["FSMInit"].length === 1) { %>this.changeState<FSMInit>({ state: "<%= canLeaveTo["FSMInit"] %>" });<% } %>
+                this.changeState<FSMInit>({ state: "<%= canLeaveTo["FSMInit"][0] %>" });
             }
         });
     }

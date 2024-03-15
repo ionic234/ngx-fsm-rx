@@ -1,6 +1,6 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.20",
   "scripts": {
     "build": "tsc -p tsconfig.schematics.json",
     "build:watch": "tsc -p tsconfig.schematics.json --watch",
@@ -17,7 +17,8 @@
     "rxjs": "^7.8.0",
     "mermaid": "^10.4.0",
     "deep-equal": "^2.2.3",
-    "fsm-rx": "1.0.0-alpha.1"
+    "fsm-rx": "1.0.0-alpha.1",
+    "prompts": "^2.4.2"
   },
   "sideEffects": false
 }

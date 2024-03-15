@@ -5,7 +5,6 @@ import { GenerateFsmRxComponentSchema } from './generate-fsm-rx-component';
 import { StateLifecycleHook } from "fsm-rx";
 import prompts from 'prompts';
 
-
 type Collection = {
     [key: string]: string[];
 };
@@ -17,7 +16,6 @@ type StateChoice = {
 };
 
 type StatesToHook = Record<StateLifecycleHook, string[]>;
-
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
     return async (_tree: Tree, context: SchematicContext) => {
