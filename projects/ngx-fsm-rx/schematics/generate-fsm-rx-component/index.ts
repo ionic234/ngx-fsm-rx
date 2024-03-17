@@ -33,6 +33,7 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
                 applyTemplates({
                     ...strings,
                     ...options,
+                    'if-flat': (s: string) => (options.flat ? '' : s),
                     fsmStates,
                     canLeaveTo,
                     statesToHook
