@@ -1,7 +1,10 @@
 export interface GenerateFsmRxComponentSchema {
     path: string;
-    name: string,
-    type: string;
-    flat: boolean;
     project: string;
+    name: string,
+    prefix: string,
+    selector: string;
+    style: string;
+    module: string;
+    standalone: boolean;
 }

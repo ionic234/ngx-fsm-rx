@@ -1,9 +1,15 @@
 /*eslint-disable*/
-import { normalize, strings } from "@angular-devkit/core";
-import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, externalSchematic, mergeWith, move, url, } from '@angular-devkit/schematics';
-import { GenerateFsmRxComponentSchema } from './component';
+import { strings } from "@angular-devkit/core";
+import { FileOperator, MergeStrategy, Rule, SchematicContext, SchematicsException, Tree, apply, applyTemplates, chain, externalSchematic, filter, forEach, mergeWith, move, noop, url } from '@angular-devkit/schematics';
+import { NodeDependency, getPackageJsonDependency } from '@schematics/angular/utility/dependencies';
+import { parseName } from '@schematics/angular/utility/parse-name';
+import { validateHtmlSelector } from '@schematics/angular/utility/validation';
+import { ProjectDefinition, buildDefaultPath, getWorkspace } from '@schematics/angular/utility/workspace';
+import { spawnSync } from 'child_process';
 import { StateLifecycleHook } from "fsm-rx";
 import prompts from 'prompts';
+import { GenerateFsmRxComponentSchema } from './component';
+
 
 type Collection = {
     [key: string]: string[];
@@ -18,26 +24,65 @@ type StateChoice = {
 type StatesToHook = Record<StateLifecycleHook, string[]>;
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
-    return async (_tree: Tree, context: SchematicContext) => {
+    return async (tree: Tree, context: SchematicContext) => {
+
+        //Copied from angular-cli-main component 
+        const workspace = await getWorkspace(tree);
+        const project: ProjectDefinition | undefined = workspace.projects.get(options.project);
+
+        options.style = "none" ? Object.entries(project?.extensions?.["schematics"] as object ?? {}).find(([key]) => {
+            return key === "@schematics/angular:component";
+        })?.[1]?.['style'] ?? "less" : options.style;
+
+        if (!project) { throw new SchematicsException(`Project "${options.project}" does not exist.`); }
+        if (options.path === undefined) { options.path = buildDefaultPath(project); }
+
+        const parsedPath = parseName(options.path, options.name);
+
+        options.name = parsedPath.name;
+        options.path = parsedPath.path;
+        options.selector = options.selector || buildSelector(options, (project && project.prefix) || '');
+
+        validateHtmlSelector(options.selector);
 
         const fsmStates: string[] = await getStates(context);
         const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates);
         const statesToHook: StatesToHook = await getStatesToHook(fsmStates);
 
-        // Fixes for testing. Remove for release. 
-        if (options.path === undefined) { options.path = "src"; }
+        const storybookDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook");
+        if (storybookDependency) {
+            const deepControlsDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook-addon-deep-controls");
+            if (!deepControlsDependency) {
+                try {
+                    spawnSync('npx', [`storybook@${storybookDependency.version}`, 'add storybook-addon-deep-controls'], { stdio: 'inherit', shell: true });
+                } catch (error) {
+                    console.error('npx is not available. Please make sure npx is installed on your system.');
+                    process.exit(1);
+                }
+            }
+        }
 
         const templateSource = apply(
             url('./files'),
             [
+                !storybookDependency ? filter((path) => !path.endsWith('.stories.ts.template')) : noop(),
                 applyTemplates({
                     ...strings,
                     ...options,
+                    decisionStates: getDecisionStates(canLeaveTo),
                     fsmStates,
                     canLeaveTo,
                     statesToHook
                 }),
-                move(normalize(`/${options.path}/${strings.dasherize(options.name)}`))
+                forEach(((file) => {
+                    return file.path.includes('..')
+                        ? {
+                            content: file.content,
+                            path: file.path.replace('..', '.'),
+                        }
+                        : file;
+                }) as FileOperator),
+                move(parsedPath.path),
             ]
         );
 
@@ -46,6 +91,17 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
             mergeWith(templateSource, MergeStrategy.Overwrite)
         ]);
     };
+}
+
+function buildSelector(options: GenerateFsmRxComponentSchema, projectPrefix: string) {
+    let selector = strings.dasherize(options.name);
+    if (options.prefix) {
+        selector = `${options.prefix}-${selector}`;
+    } else if (options.prefix === undefined && projectPrefix) {
+        selector = `${projectPrefix}-${selector}`;
+    }
+
+    return selector;
 }
 
 async function getStates(context: SchematicContext): Promise<string[]> {
@@ -63,7 +119,7 @@ async function requestStates(context: SchematicContext): Promise<string[]> {
     let states: string[] = [];
     do {
         const rawStates = await promptForStates();
-        if (rawStates !== "") {
+        if (rawStates && rawStates !== "") {
             states = await validateStates(rawStates.split(" "), context);
             states = Array.from(new Set(states));
         }
@@ -107,7 +163,7 @@ function isValidStateName(input: string, context: SchematicContext): boolean {
 
     if (input === "") { return true; }
 
-    let isAlphaNumeric: boolean = /^[a-zA-Z][a-zA-Z0-9]*$/.test(input);
+    let isAlphaNumeric: boolean = /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(input);
     if (!isAlphaNumeric) {
         context.logger.error(`States must be alphanumeric and start with a letter: "${input}" is invalid.`);
         return false;
@@ -225,4 +281,13 @@ async function getStatesToHookArray(stateLifecycleHook: StateLifecycleHook, fsmS
     ]);
 
     return promptAnswer.statesToHook;
+}
+
+function getDecisionStates(canLeaveTo: Collection): Collection {
+
+    return Object.entries(canLeaveTo).reduce((rData: Collection, [key, value]) => {
+        if (value.length > 0) { rData[key] = value; }
+        return rData;
+    }, {});
+
 }

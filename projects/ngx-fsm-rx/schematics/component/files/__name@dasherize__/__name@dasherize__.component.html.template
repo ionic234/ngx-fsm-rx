@@ -1,10 +1,10 @@
-<p><%= dasherize(name) %> works!</p>
+<h1><%= classify(name) %> works!</h1>
 
 <ng-container *ngIf="stateData$ | async as stateData">
     <ng-container [ngSwitch]="stateData.state">
         <% Object.keys(canLeaveTo).forEach((key) => { %>
-        <ng-container *ngSwitchCase="<%= key %>">
-            <h1><%= key %></h1>
+        <ng-container *ngSwitchCase="'<%= key %>'">
+            <h2><%= key %></h2>
         </ng-container>
         <%})%>
     </ng-container>

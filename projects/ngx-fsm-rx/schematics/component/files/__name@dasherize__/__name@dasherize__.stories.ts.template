@@ -14,7 +14,7 @@ const meta: Meta<<%=classify(name)%>Component> = {
         }),
         componentWrapperDecorator((story: string) => {
             story = story.replace(">", " #fsmRxComponent>");
-            return `<fsm-rx-debug-set>${story}</fsm-rx-debug-set>`;
+            return `<fsm-rx-debug-set [debugLogKeys]="['state']">${story}</fsm-rx-debug-set>`;
         })
     ],
     args: {
@@ -24,17 +24,28 @@ const meta: Meta<<%=classify(name)%>Component> = {
             outputDebugLog: true,
             stringifyLogTransitionData: false,
             outputStateDiagramDefinition: true,
+            resetDebugLogOnOverride: false,
+            stateOverride:{
+                stateData: {
+                    state: "<%= fsmStates[0] %>"
+                }
+            }
         }
     },
     parameters: {
         deepControls: { enabled: true },
         controls: {
-            exclude: '(stateMap|handleEnterState|ngAfterViewInit)'
+            exclude: '(stateMap|handleEnterState|ngAfterViewInit|generateStateTransition|ngOnChanges)'
         }
     },
     argTypes: {
         //eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
+        'fsmConfig.stateOverride.stateData.state': {
+            name: "Override State",
+            control: { type: 'select' },
+            options: ["<%= fsmStates.join('", "') %>"],
+        },
         'fsmConfig.stateDiagramDirection': {
             control: { type: 'select' },
             options: ["LR", "TB"],
@@ -56,11 +67,10 @@ const meta: Meta<<%=classify(name)%>Component> = {
             name: `Output State Diagram Definition`,
             control: { type: 'boolean' }
         },
-        'fsmConfig.stateOverride.stateData.state': {
-            name: "Override State",
-            control: { type: 'select' },
-            options: ["<%= fsmStates.join('", "') %>"],
-        },
+        'fsmConfig.resetDebugLogOnOverride': {
+            name: `Reset Debug Log On Override`,
+            control: { type: 'boolean' },
+        }
     }
 };
 

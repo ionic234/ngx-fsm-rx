@@ -29,10 +29,48 @@
             },
             "x-prompt": "What name would you like to use for the component?"
         },
-        "type": {
+        "prefix": {
             "type": "string",
-            "description": "Adds a developer-defined type to the filename, in the format \"name.type.ts\".",
-            "default": "Component"
+            "description": "The prefix to apply to the generated component selector.",
+            "alias": "p",
+            "oneOf": [
+                {
+                    "maxLength": 0
+                },
+                {
+                    "minLength": 1,
+                    "format": "html-selector"
+                }
+            ]
+        },
+        "selector": {
+            "type": "string",
+            "format": "html-selector",
+            "description": "The HTML selector to use for this component."
+        },
+        "style": {
+            "description": "The file extension or preprocessor to use for style files, or 'none' to skip generating the style file.",
+            "type": "string",
+            "default": "none",
+            "enum": [
+                "css",
+                "scss",
+                "sass",
+                "less",
+                "none"
+            ],
+            "x-user-analytics": "ep.ng_style"
+        },
+        "module": {
+            "type": "string",
+            "description": "The declaring NgModule.",
+            "alias": "m"
+        },
+        "standalone": {
+            "description": "Whether the generated component is standalone.",
+            "type": "boolean",
+            "default": true,
+            "x-user-analytics": "ep.ng_standalone"
         }
     },
     "required": [

@@ -1,25 +1,44 @@
 /*eslint-disable*/
-import { Rule, SchematicContext, Tree } from '@angular-devkit/schematics';
+import { Rule, SchematicContext, Tree, chain, } from '@angular-devkit/schematics';
 import { NodeDependency, NodeDependencyType, addPackageJsonDependency, getPackageJsonDependency } from '@schematics/angular/utility/dependencies';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
+import prompts from 'prompts';
 
 export function ngAdd(): Rule {
 
-    return (tree: Tree, context: SchematicContext) => {
+    return async (tree: Tree, context: SchematicContext) => {
 
         addDependencies(tree, context);
 
         const storybookDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook");
-        if (storybookDependency) {
-            try {
-                spawn('npx', [`storybook@${storybookDependency.version}`, 'add storybook-addon-deep-controls'], { stdio: 'inherit', shell: true });
-            } catch (error) {
-                console.error('npx is not available. Please make sure npx is installed on your system.');
-                process.exit(1);
+        if (!storybookDependency) {
+            const promptAnswer = await prompts([
+                {
+                    type: "confirm",
+                    name: "installStorybook",
+                    message: "Do you want to add Storybook as a testing playground? This will run storybook."
+                }
+            ]);
+            if (promptAnswer.installStorybook === true) {
+                try {
+                    spawn('npx', ['storybook@latest', 'init'], { stdio: 'inherit', shell: true });
+                } catch (error) {
+                    console.error('npx is not available. Please make sure npx is installed on your system.');
+                    process.exit(1);
+                }
+            }
+        } else {
+            const deepControlsDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook-addon-deep-controls");
+            if (!deepControlsDependency) {
+                try {
+                    spawnSync('npx', [`storybook@${storybookDependency.version}`, 'add storybook-addon-deep-controls'], { stdio: 'inherit', shell: true });
+                } catch (error) {
+                    console.error('npx is not available. Please make sure npx is installed on your system.');
+                    process.exit(1);
+                }
             }
         }
-        return tree;
-
+        return chain([]);
     };
 }
 
