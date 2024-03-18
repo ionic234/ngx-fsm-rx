@@ -5,12 +5,12 @@
       "description": "Add NgxFsmRx dependencies",
       "factory": "./ng-add/index#ngAdd"
     },
-    "generate-fsm-rx-component": {
+    "component": {
       "description": "Create an FsmRx Component",
-      "factory": "./generate-fsm-rx-component/index#generateFsmRxComponent",
-      "schema": "./generate-fsm-rx-component/schema.json",
+      "factory": "./component/index#generateFsmRxComponent",
+      "schema": "./component/schema.json",
       "aliases": [
-        "gfc"
+        "c"
       ]
     }
   }

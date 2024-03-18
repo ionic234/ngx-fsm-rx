@@ -1,7 +1,7 @@
 /*eslint-disable*/
 import { normalize, strings } from "@angular-devkit/core";
 import { MergeStrategy, Rule, SchematicContext, Tree, apply, applyTemplates, chain, externalSchematic, mergeWith, move, url, } from '@angular-devkit/schematics';
-import { GenerateFsmRxComponentSchema } from './generate-fsm-rx-component';
+import { GenerateFsmRxComponentSchema } from './component';
 import { StateLifecycleHook } from "fsm-rx";
 import prompts from 'prompts';
 
@@ -33,7 +33,6 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
                 applyTemplates({
                     ...strings,
                     ...options,
-                    'if-flat': (s: string) => (options.flat ? '' : s),
                     fsmStates,
                     canLeaveTo,
                     statesToHook
