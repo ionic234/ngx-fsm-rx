@@ -12,6 +12,14 @@
       "aliases": [
         "c"
       ]
+    },
+    "service": {
+      "description": "Create an FsmRx Service",
+      "factory": "./service/index#generateFsmRxService",
+      "schema": "./service/schema.json",
+      "aliases": [
+        "c"
+      ]
     }
   }
 }

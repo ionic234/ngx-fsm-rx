@@ -3,7 +3,7 @@ import { BaseStateData, CurrentStateInfo, FSMInit,<% if (statesToHook["onEnter"]
 import { FsmRxComponent } from 'ngx-fsm-rx';
 <% if(standalone) {%>import { CommonModule } from '@angular/common';<% } %>
 
-type <%= classify(name) %>States = "<%= fsmStates.join('" | "') %>";
+export type <%= classify(name) %>States = "<%= fsmStates.join('" | "') %>";
 
 interface Base<%= classify(name) %>Data extends BaseStateData<<%= classify(name) %>States> {
     // Data common to all states goes here

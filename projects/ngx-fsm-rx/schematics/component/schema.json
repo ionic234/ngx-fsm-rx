@@ -2,6 +2,7 @@
     "$schema": "http://json-schema.org/schema",
     "$id": "generate-fsm-rx-component",
     "title": "Generate FsmRx Component",
+    "description": "Create an FsmRx Component",
     "type": "object",
     "properties": {
         "path": {
