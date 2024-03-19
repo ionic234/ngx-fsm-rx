@@ -32,9 +32,15 @@ export class <%=classify(name)%>Component extends FsmRxComponent<<%= classify(na
         <%= state %>: {
             canEnterFromStates: {<% const fromStates = []; Object.keys(canLeaveTo).forEach((key) => { if(canLeaveTo[key].includes(state)){ fromStates.push(key) }})%> <%= fromStates.join(": true, ") %>: true },
             canLeaveToStates: { <%= canLeaveTo[state].join(": true, ") %>: true },<% if (statesToHook["onEnter"].includes(state)) { %>
-            onEnter: (changes: OnEnterStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %><% if (statesToHook["onLeave"].includes(state)) { %>
-            onLeave: (changes: OnLeaveStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %><% if (statesToHook["onUpdate"].includes(state)) { %>
-            onUpdate: (changes: OnUpdateStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { },<% } %>
+            onEnter: (changes: OnEnterStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %><% if (statesToHook["onLeave"].includes(state)) { %>
+            onLeave: (changes: OnLeaveStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %><% if (statesToHook["onUpdate"].includes(state)) { %>
+            onUpdate: (changes: OnUpdateStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %>
         }<% if (i !== fsmStates.length-1){ %>,<% } }) %>
     };
 

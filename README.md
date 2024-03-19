@@ -1,6 +1,6 @@
 # NgxFsmRx
 
-![Alt text](./test.png?raw=true "Title")
+![Alt text](./ngx-fsm-rx.gif?raw=true "Title")
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.12.

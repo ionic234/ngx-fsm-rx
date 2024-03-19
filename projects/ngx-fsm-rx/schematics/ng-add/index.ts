@@ -8,8 +8,6 @@ export function ngAdd(): Rule {
 
     return async (tree: Tree, context: SchematicContext) => {
 
-        addDependencies(tree, context);
-
         const storybookDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook");
         if (!storybookDependency) {
             const promptAnswer = await prompts([
@@ -38,6 +36,9 @@ export function ngAdd(): Rule {
                 }
             }
         }
+
+        addDependencies(tree, context);
+
         return chain([]);
     };
 }

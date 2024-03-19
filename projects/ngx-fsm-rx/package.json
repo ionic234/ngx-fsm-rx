@@ -1,6 +1,6 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "1.0.0-alpha.83",
+  "version": "1.0.0",
   "scripts": {
     "build": "tsc -p tsconfig.schematics.json",
     "build:watch": "tsc -p tsconfig.schematics.json --watch",
