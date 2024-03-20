@@ -75,8 +75,6 @@ export class <%=classify(name)%>Component extends FsmRxComponent<<%= classify(na
                 <% }}) %>
             default:
                 return super.generateStateTransition(state, canLeaveTo);
-        }    
-         
-    }
-    <%} %>
+        }      
+    }<%} %>
 }

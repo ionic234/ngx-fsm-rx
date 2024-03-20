@@ -7,4 +7,5 @@ export interface GenerateFsmRxComponentSchema {
     style: string;
     module: string;
     standalone: boolean;
+    flat: boolean;
 }

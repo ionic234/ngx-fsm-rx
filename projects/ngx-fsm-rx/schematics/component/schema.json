@@ -72,6 +72,11 @@
             "type": "boolean",
             "default": true,
             "x-user-analytics": "ep.ng_standalone"
+        },
+        "flat": {
+            "type": "boolean",
+            "description": "Create the new files at the top level of the current project.",
+            "default": false
         }
     },
     "required": [

@@ -1,9 +1,9 @@
 /*eslint-disable*/
 import { strings } from "@angular-devkit/core";
-import { FileOperator, MergeStrategy, Rule, SchematicContext, SchematicsException, Tree, apply, applyTemplates, chain, externalSchematic, filter, forEach, mergeWith, move, noop, url } from '@angular-devkit/schematics';
+import { FileOperator, MergeStrategy, Rule, SchematicContext, SchematicsException, Tree, apply, applyTemplates, chain, externalSchematic, forEach, mergeWith, move, url } from '@angular-devkit/schematics';
 import { parseName } from '@schematics/angular/utility/parse-name';
 import { ProjectDefinition, buildDefaultPath, getWorkspace } from '@schematics/angular/utility/workspace';
-import { Collection, getCanAllLeaveTo, getStates } from '../shared';
+import { Collection, StatesToHook, getCanAllLeaveTo, getStates, getStatesToHook } from '../shared';
 import { GenerateFsmRxServiceSchema } from './service';
 
 export function generateFsmRxService(options: GenerateFsmRxServiceSchema): Rule {
@@ -11,6 +11,7 @@ export function generateFsmRxService(options: GenerateFsmRxServiceSchema): Rule 
 
         const fsmStates: string[] = await getStates(context);
         const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates);
+        const statesToHook: StatesToHook = await getStatesToHook(fsmStates);
 
         const workspace = await getWorkspace(tree);
         const project: ProjectDefinition | undefined = workspace.projects.get(options.project);
@@ -26,8 +27,10 @@ export function generateFsmRxService(options: GenerateFsmRxServiceSchema): Rule 
                 applyTemplates({
                     ...strings,
                     ...options,
+                    'if-flat': (s: string) => (options.flat ? '' : s),
                     fsmStates,
                     canLeaveTo,
+                    statesToHook
                 }),
                 forEach(((file) => {
                     return file.path.includes('..')
@@ -42,7 +45,7 @@ export function generateFsmRxService(options: GenerateFsmRxServiceSchema): Rule 
         );
 
         return chain([
-            externalSchematic("@schematics/angular", "component", options),
+            externalSchematic("@schematics/angular", "service", options),
             mergeWith(templateSource, MergeStrategy.Overwrite)
         ]);
     };

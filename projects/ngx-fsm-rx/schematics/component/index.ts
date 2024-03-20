@@ -6,8 +6,9 @@ import { parseName } from '@schematics/angular/utility/parse-name';
 import { validateHtmlSelector } from '@schematics/angular/utility/validation';
 import { ProjectDefinition, buildDefaultPath, getWorkspace } from '@schematics/angular/utility/workspace';
 import { spawnSync } from 'child_process';
-import { GenerateFsmRxComponentSchema } from './component';
 import { Collection, StatesToHook, getCanAllLeaveTo, getStates, getStatesToHook } from "../shared";
+import { GenerateFsmRxComponentSchema } from './component';
+
 
 export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): Rule {
     return async (tree: Tree, context: SchematicContext) => {
@@ -16,7 +17,7 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
         const workspace = await getWorkspace(tree);
         const project: ProjectDefinition | undefined = workspace.projects.get(options.project);
 
-        options.style = "none" ? Object.entries(project?.extensions?.["schematics"] as object ?? {}).find(([key]) => {
+        options.style = options.style === "none" ? Object.entries(project?.extensions?.["schematics"] as object ?? {}).find(([key]) => {
             return key === "@schematics/angular:component";
         })?.[1]?.['style'] ?? "less" : options.style;
 
@@ -55,6 +56,7 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
                 applyTemplates({
                     ...strings,
                     ...options,
+                    'if-flat': (s: string) => (options.flat ? '' : s),
                     decisionStates: getDecisionStates(canLeaveTo),
                     fsmStates,
                     canLeaveTo,
