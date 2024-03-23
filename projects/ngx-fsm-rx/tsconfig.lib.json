@@ -6,7 +6,15 @@
     "declaration": true,
     "declarationMap": true,
     "inlineSources": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "ngx-fsm-rx": [
+        "./../../dist/ngx-fsm-rx/ngx-fsm-rx"
+      ],
+      "ngx-fsm-rx/*": [
+        "./../../dist/ngx-fsm-rx/ngx-fsm-rx/*"
+      ]
+    },
   },
   "exclude": [
     "**/*.spec.ts"

@@ -49,6 +49,8 @@ function addDependencies(tree: Tree, context: SchematicContext) {
     const dependencies: NodeDependency[] = [
         { type: NodeDependencyType.Dev, name: 'mermaid', version: '^10.4.0' },
         { type: NodeDependencyType.Dev, name: 'prompts', version: '^2.4.2' },
+        { type: NodeDependencyType.Dev, name: '@types/dompurify', version: '^3.0.5' },
+        { type: NodeDependencyType.Dev, name: '@types/d3', version: '^7.4.3' },
         { type: NodeDependencyType.Default, name: 'deep-equal', version: '^2.2.3' },
         { type: NodeDependencyType.Default, name: 'fsm-rx', version: '1.0.0-alpha.1' }
     ];

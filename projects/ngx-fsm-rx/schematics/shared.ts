@@ -62,7 +62,7 @@ async function promptForStates(): Promise<string> {
 
 async function validateStates(rawStatesArray: string[], context: SchematicContext): Promise<string[]> {
     // Do this the old fashioned way so invalid states are handled one at a time 
-    let result: string[] = [];
+    const result: string[] = [];
     for (let i = 0; i < rawStatesArray.length; i++) {
         let validatedStateName: string = await validateStateName(rawStatesArray[i], context);
         if (validatedStateName !== "") {
@@ -84,7 +84,7 @@ function isValidStateName(input: string, context: SchematicContext): boolean {
 
     if (input === "") { return true; }
 
-    let isAlphaNumeric: boolean = /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(input);
+    const isAlphaNumeric: boolean = /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(input);
     if (!isAlphaNumeric) {
         context.logger.error(`States must be alphanumeric and start with a letter: "${input}" is invalid.`);
         return false;
@@ -130,7 +130,7 @@ async function areStateAcceptable(fsmStates: string[]): Promise<boolean> {
 
 export async function getCanAllLeaveTo(fsmStates: string[], context: SchematicContext): Promise<Collection> {
 
-    let loopStates: string[] = ["FSMInit", ...fsmStates];
+    const loopStates: string[] = ["FSMInit", ...fsmStates];
     const canAllLeaveTo: Collection = {};
 
     for (let i = 0; i < loopStates.length; i++) {
@@ -144,8 +144,8 @@ export async function getCanAllLeaveTo(fsmStates: string[], context: SchematicCo
 
 async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<string[]> {
 
-    let filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
-    let fsmStatePool = state === "FSMInit" ? filteredStates : [...filteredStates, "FSMTerminate"];
+    const filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
+    const fsmStatePool = state === "FSMInit" ? filteredStates : [...filteredStates, "FSMTerminate"];
 
     const choices: StateChoice[] = fsmStatePool.reduce((rData: StateChoice[], x: string) => {
         rData.push({ title: x, value: x, selected: false });
@@ -164,7 +164,7 @@ async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<
         }
     ], { onCancel });
 
-    let canLeaveTo: string[] = promptAnswer.canLeaveTo;
+    const canLeaveTo: string[] = promptAnswer.canLeaveTo;
     if (canLeaveTo.length > 0) {
         return canLeaveTo;
     }
@@ -197,9 +197,10 @@ async function validateForOrphans(canAllLeaveTo: Collection, fsmStates: string[]
 
 async function promptForStatesCanEnterFrom(state: string, fsmStates: string[]): Promise<string[]> {
 
-    let filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
+    const filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
+    const fsmStatePool = [...filteredStates, "FSMInit"];
 
-    const choices: StateChoice[] = filteredStates.reduce((rData: StateChoice[], x: string) => {
+    const choices: StateChoice[] = fsmStatePool.reduce((rData: StateChoice[], x: string) => {
         rData.push({ title: x, value: x, selected: false });
         return rData;
     }, []);
