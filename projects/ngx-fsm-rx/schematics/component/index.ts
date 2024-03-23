@@ -33,7 +33,7 @@ export function generateFsmRxComponent(options: GenerateFsmRxComponentSchema): R
         validateHtmlSelector(options.selector);
 
         const fsmStates: string[] = await getStates(context);
-        const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates);
+        const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates, context);
         const statesToHook: StatesToHook = await getStatesToHook(fsmStates);
 
         const storybookDependency: NodeDependency | null = getPackageJsonDependency(tree, "storybook");

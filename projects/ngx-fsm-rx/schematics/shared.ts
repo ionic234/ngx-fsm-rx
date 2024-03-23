@@ -35,9 +35,17 @@ async function requestStates(context: SchematicContext): Promise<string[]> {
             states = await validateStates(rawStates.split(" "), context);
             states = Array.from(new Set(states));
         }
-    } while (states.length === 0);
+    } while (testStateLength(states, context));
 
     return states;
+}
+
+function testStateLength(states: string[], context: SchematicContext): boolean {
+    if (states.length <= 1) {
+        context.logger.warn("You must specify two or more states");
+        return true;
+    }
+    return false;
 }
 
 async function promptForStates(): Promise<string> {
@@ -45,9 +53,10 @@ async function promptForStates(): Promise<string> {
         {
             type: "text",
             name: "states",
-            message: "Input the name of your FSMs states e.g. state1 state2 state3"
+            message: "Input the name of your FSMs states e.g. state1 state2 state3",
+
         }
-    ]);
+    ], { onCancel });
     return promptAnswer.states;
 }
 
@@ -114,12 +123,12 @@ async function areStateAcceptable(fsmStates: string[]): Promise<boolean> {
             message: `Do you wish continue with the found states "${fsmStates.join(" ")}"`,
             initial: true
         }
-    ]);
+    ], { onCancel });
 
     return promptAnswer.value;
 }
 
-export async function getCanAllLeaveTo(fsmStates: string[]): Promise<Collection> {
+export async function getCanAllLeaveTo(fsmStates: string[], context: SchematicContext): Promise<Collection> {
 
     let loopStates: string[] = ["FSMInit", ...fsmStates];
     const canAllLeaveTo: Collection = {};
@@ -129,7 +138,8 @@ export async function getCanAllLeaveTo(fsmStates: string[]): Promise<Collection>
         let canLeaveTo = await promptForCanLeaveTo(state, fsmStates);
         canAllLeaveTo[state] = canLeaveTo;
     }
-    return canAllLeaveTo;
+
+    return await validateForOrphans(canAllLeaveTo, fsmStates, context);
 }
 
 async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<string[]> {
@@ -152,7 +162,7 @@ async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<
             choices: choices,
             instructions: false
         }
-    ]);
+    ], { onCancel });
 
     let canLeaveTo: string[] = promptAnswer.canLeaveTo;
     if (canLeaveTo.length > 0) {
@@ -161,6 +171,53 @@ async function promptForCanLeaveTo(state: string, fsmStates: string[]): Promise<
     return filteredStates;
 
 }
+
+async function validateForOrphans(canAllLeaveTo: Collection, fsmStates: string[], context: SchematicContext): Promise<Collection> {
+
+    const allLeaveToStates: string[] = ([] as string[]).concat(...Object.values(canAllLeaveTo));
+    let canEnterFrom: string[] = [];
+    let state: string = "";
+
+    for (let i = 0; i < fsmStates.length; i++) {
+        state = fsmStates[i];
+        if (!allLeaveToStates.includes(state)) {
+
+            do {
+                context.logger.warn(`No states leave to the ${state} state.`);
+                canEnterFrom = await promptForStatesCanEnterFrom(state, fsmStates);
+            } while (canEnterFrom.length === 0);
+
+            canEnterFrom.forEach((enterFromState: string) => { canAllLeaveTo[enterFromState].push(state); });
+            canEnterFrom = [];
+        }
+    }
+
+    return canAllLeaveTo;
+}
+
+async function promptForStatesCanEnterFrom(state: string, fsmStates: string[]): Promise<string[]> {
+
+    let filteredStates: string[] = fsmStates.filter((x) => { return x !== state; });
+
+    const choices: StateChoice[] = filteredStates.reduce((rData: StateChoice[], x: string) => {
+        rData.push({ title: x, value: x, selected: false });
+        return rData;
+    }, []);
+
+    const promptAnswer = await prompts([
+        {
+            type: 'multiselect',
+            name: 'canEnterFrom',
+            message: `Which states should leave to the ${state} state?`,
+            choices: choices,
+            instructions: false,
+            validate: (value) => { return value.length === 0 ? 'Please select at least one state.' : true; }
+        }
+    ], { onCancel });
+
+    return promptAnswer.canEnterFrom;
+}
+
 
 export async function getStatesToHook(fsmStates: string[]): Promise<StatesToHook> {
 
@@ -190,7 +247,11 @@ async function getStatesToHookArray(stateLifecycleHook: StateLifecycleHook, fsmS
             choices: choices,
             instructions: false
         }
-    ]);
+    ], { onCancel });
 
     return promptAnswer.statesToHook;
+}
+
+export function onCancel() {
+    process.exit(1);
 }

@@ -3,6 +3,8 @@ import { Rule, SchematicContext, Tree, chain, } from '@angular-devkit/schematics
 import { NodeDependency, NodeDependencyType, addPackageJsonDependency, getPackageJsonDependency } from '@schematics/angular/utility/dependencies';
 import { spawn, spawnSync } from 'child_process';
 import prompts from 'prompts';
+import { onCancel } from '../shared';
+
 
 export function ngAdd(): Rule {
 
@@ -16,12 +18,12 @@ export function ngAdd(): Rule {
                     name: "installStorybook",
                     message: "Do you want to add Storybook as a testing playground? This will run storybook."
                 }
-            ]);
+            ], { onCancel });
             if (promptAnswer.installStorybook === true) {
                 try {
                     spawn('npx', ['storybook@latest', 'init'], { stdio: 'inherit', shell: true });
                 } catch (error) {
-                    console.error('npx is not available. Please make sure npx is installed on your system.');
+                    context.logger.error('npx is not available. Please make sure npx is installed on your system.');
                     process.exit(1);
                 }
             }
@@ -31,7 +33,7 @@ export function ngAdd(): Rule {
                 try {
                     spawnSync('npx', [`storybook@${storybookDependency.version}`, 'add storybook-addon-deep-controls'], { stdio: 'inherit', shell: true });
                 } catch (error) {
-                    console.error('npx is not available. Please make sure npx is installed on your system.');
+                    context.logger.error('npx is not available. Please make sure npx is installed on your system.');
                     process.exit(1);
                 }
             }

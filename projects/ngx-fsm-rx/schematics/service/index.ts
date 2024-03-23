@@ -10,7 +10,7 @@ export function generateFsmRxService(options: GenerateFsmRxServiceSchema): Rule 
     return async (tree: Tree, context: SchematicContext) => {
 
         const fsmStates: string[] = await getStates(context);
-        const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates);
+        const canLeaveTo: Collection = await getCanAllLeaveTo(fsmStates, context);
         const statesToHook: StatesToHook = await getStatesToHook(fsmStates);
 
         const workspace = await getWorkspace(tree);
