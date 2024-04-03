@@ -1,0 +1,9 @@
+{
+    "include": [
+        "projects/ngx-fsm-rx/**/*.ts"
+    ],
+    "exclude": [
+        "projects/ngx-fsm-rx/**/*.spec.ts",
+        "projects/ngx-fsm-rx/schematics/**/*.ts"
+    ]
+}

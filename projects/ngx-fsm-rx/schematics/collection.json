@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "ng-add": {
+      "description": "Add NgxFsmRx dependencies",
+      "factory": "./ng-add/index#ngAdd"
+    },
+    "component": {
+      "description": "Create an FsmRx Component",
+      "factory": "./component/index#generateFsmRxComponent",
+      "schema": "./component/schema.json",
+      "aliases": [
+        "c"
+      ]
+    },
+    "service": {
+      "description": "Create an FsmRx Service",
+      "factory": "./service/index#generateFsmRxService",
+      "schema": "./service/schema.json",
+      "aliases": [
+        "s"
+      ]
+    }
+  }
+}

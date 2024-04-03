@@ -1,0 +1,15 @@
+:host {
+
+    .hero-content {
+        display: flex;
+        align-items: flex-end;
+    }
+
+    &.columns {
+        .hero-content {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+
+}

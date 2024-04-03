@@ -1,0 +1,80 @@
+import { AfterViewInit, Component, OnChanges, SimpleChanges } from '@angular/core';
+import { BaseStateData, CurrentStateInfo, FSMInit,<% if (statesToHook["onEnter"].length > 0){ %> OnEnterStateChanges,<% } %><% if (statesToHook["onLeave"].length > 0){ %> OnLeaveStateChanges,<% } %><% if (statesToHook["onUpdate"].length > 0){ %> OnUpdateStateChanges,<% } %> StateMap } from 'fsm-rx';
+import { FsmRxComponent } from 'ngx-fsm-rx';
+<% if(standalone) {%>import { CommonModule } from '@angular/common';<% } %>
+
+export type <%= classify(name) %>States = "<%= fsmStates.join('" | "') %>";
+
+interface Base<%= classify(name) %>Data extends BaseStateData<<%= classify(name) %>States> {
+    // Data common to all states goes here
+}
+<% for (let i = 0; i < fsmStates.length; i++) { %>
+interface <%= classify(name) %><%=classify(fsmStates[i]) %>Data extends Base<%= classify(name) %>Data {
+    // Data unique to the "<%=classify(fsmStates[i]) %>" state goes here
+}
+<% } %>
+export type <%= classify(name) %>Data = <% fsmStates.forEach((state, i)=>{ %><%= classify(name) %><%=classify(state) %>Data<% if (i !== fsmStates.length-1){ %> | <% } })%>;
+
+export type <%= classify(name) %>CanLeaveToMap = {<% Object.keys(canLeaveTo).forEach((key) => { %>
+    <%= key %>: "<%=canLeaveTo[key].join('" | "') %>";<% });%>
+};
+
+@Component({
+    selector: '<%= selector %>',
+    templateUrl: './<%= dasherize(name) %>.component.html',<% if(standalone) {%>
+    standalone: true,
+    imports: [CommonModule],<% } %>
+    styleUrls: ['./<%= dasherize(name) %>.component.<%= style %>']
+})
+export class <%=classify(name)%>Component extends FsmRxComponent<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap> implements AfterViewInit, OnChanges {
+
+    protected override stateMap: StateMap<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap> = {<% fsmStates.forEach((state, i)=>{ %> 
+        <%= state %>: {
+            canEnterFromStates: {<% const fromStates = []; Object.keys(canLeaveTo).forEach((key) => { if(canLeaveTo[key].includes(state)){ fromStates.push(key) }})%> <%= fromStates.join(": true, ") %>: true },
+            canLeaveToStates: { <%= canLeaveTo[state].join(": true, ") %>: true },<% if (statesToHook["onEnter"].includes(state)) { %>
+            onEnter: (changes: OnEnterStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %><% if (statesToHook["onLeave"].includes(state)) { %>
+            onLeave: (changes: OnLeaveStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %><% if (statesToHook["onUpdate"].includes(state)) { %>
+            onUpdate: (changes: OnUpdateStateChanges<<%= classify(name) %>States, "<%= state %>", <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => { 
+                console.log("changes:", changes); 
+            },<% } %>
+        }<% if (i !== fsmStates.length-1){ %>,<% } }) %>
+    };
+
+    public constructor() {
+        super();
+    }
+
+    public override ngAfterViewInit(): void {
+        super.ngAfterViewInit();
+        this.currentState$.subscribe((currentStateInfo: CurrentStateInfo<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) => {
+            const { state } = currentStateInfo;
+            if (state === "FSMInit") {
+                this.changeState<FSMInit>({ state: "<%= canLeaveTo["FSMInit"][0] %>" });
+            }
+        });
+    }
+
+    public override ngOnChanges(changes: SimpleChanges): void {
+        super.ngOnChanges(changes);
+    }<% const decisionEntries = Object.entries(decisionStates); if (decisionEntries.length > 0) { %>  
+
+    protected override generateStateTransition(state: <%= classify(name) %>States | 'FSMInit', canLeaveTo: <%= classify(name) %>States[]): string {
+        switch (state) {
+            <% decisionEntries.forEach(([key, value])=>{ %><% if (value.length > 1) { %>
+            case "<%= key %>":    
+                <% value.forEach((x)=>{ %>
+                const <%= camelize(key) %>To<%= classify(x) %> = "Enter <%= x %> from <%= key %> reason here"; <% }) %>
+                
+                return `state <%= key %>_decision <<choice>>
+                <%= key %> --> <%= key %>_decision<% value.forEach((x)=>{ %>
+                <%= key %>_decision --> <%= x %> : ${<%= camelize(key) %>To<%= classify(x) %>}<% }) %>`;
+                <% }}) %>
+            default:
+                return super.generateStateTransition(state, canLeaveTo);
+        }      
+    }<%} %>
+}

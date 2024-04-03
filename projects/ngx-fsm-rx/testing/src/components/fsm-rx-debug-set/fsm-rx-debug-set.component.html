@@ -1,0 +1,10 @@
+<div class="hero-content">
+    <ng-content></ng-content>
+    <ng-container *ngIf="stateDiagramDefinition">
+        <fsm-rx-state-diagram [stateDiagramDefinition]="stateDiagramDefinition"></fsm-rx-state-diagram>
+    </ng-container>
+</div>
+
+<ng-container *ngIf="debugLog">
+    <fsm-rx-debug-log [debugLog]=" debugLog" />
+</ng-container>
