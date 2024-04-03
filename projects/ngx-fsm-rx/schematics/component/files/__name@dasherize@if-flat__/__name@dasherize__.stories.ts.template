@@ -1,0 +1,83 @@
+import { CommonModule } from '@angular/common';
+import { componentWrapperDecorator, moduleMetadata, type Meta, type StoryObj } from '@storybook/angular';
+import { FsmRxDebugLogComponent, FsmRxDebugSetComponent, FsmRxStateDiagramComponent } from 'ngx-fsm-rx/testing';
+import { OnOverrideStateChanges } from 'fsm-rx';
+import { <%= classify(name) %>CanLeaveToMap, <%=classify(name)%>Component, <%= classify(name) %>Data, <%= classify(name) %>States } from './<%= dasherize(name) %>.component';
+
+const meta: Meta<<%=classify(name)%>Component> = {
+    title: '<%= dasherize(name).replace("-", " ") %>',
+    component: <%=classify(name)%>Component,
+    decorators: [
+        moduleMetadata({
+            declarations: [FsmRxDebugLogComponent, FsmRxStateDiagramComponent, FsmRxDebugSetComponent],
+            imports: [CommonModule],
+        }),
+        componentWrapperDecorator((story: string) => {
+            story = story.replace(">", " #fsmRxComponent>");
+            return `<fsm-rx-debug-set [debugLogKeys]="['state']">${story}</fsm-rx-debug-set>`;
+        })
+    ],
+    args: {
+        fsmConfig: {
+            stateDiagramDirection: "TB",
+            debugLogBufferCount: 10,
+            outputDebugLog: true,
+            stringifyLogTransitionData: false,
+            outputStateDiagramDefinition: true,
+            resetDebugLogOnOverride: false,
+            stateOverride: {
+                stateData: {
+                    state: "<%= fsmStates[0] %>"
+                },
+                onOverride: function (this: <%=classify(name)%>Component, onOverrideStateChanges: OnOverrideStateChanges<<%= classify(name) %>States, <%= classify(name) %>Data, <%= classify(name) %>CanLeaveToMap>) {
+                    console.log("override changes", onOverrideStateChanges);
+                }
+            }
+        }
+    },
+    parameters: {
+        deepControls: { enabled: true },
+        controls: {
+            exclude: '(stateMap|handleEnterState|ngAfterViewInit|generateStateTransition|ngOnChanges)'
+        }
+    },
+    argTypes: {
+        //eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        'fsmConfig.stateOverride.stateData.state': {
+            name: "Override State",
+            control: { type: 'select' },
+            options: ["<%= fsmStates.join('", "') %>"],
+        },
+        'fsmConfig.stateDiagramDirection': {
+            control: { type: 'select' },
+            options: ["LR", "TB"],
+            name: 'State Diagram Direction'
+        },
+        'fsmConfig.debugLogBufferCount': {
+            name: ' Debug Log Buffer Count',
+            control: { type: 'number' }
+        },
+        'fsmConfig.outputDebugLog': {
+            name: `Output Debug Log`,
+            control: { type: 'boolean' }
+        },
+        'fsmConfig.stringifyLogTransitionData': {
+            name: `Stringify Log Transition Data`,
+            control: { type: 'boolean' }
+        },
+        'fsmConfig.outputStateDiagramDefinition': {
+            name: `Output State Diagram Definition`,
+            control: { type: 'boolean' }
+        },
+        'fsmConfig.resetDebugLogOnOverride': {
+            name: `Reset Debug Log On Override`,
+            control: { type: 'boolean' },
+        }
+    }
+};
+
+export default meta;
+type Story = StoryObj<<%=classify(name)%>Component>;
+
+export const Default: Story = {};

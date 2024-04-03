@@ -3,5 +3,58 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
+    "ngx-fsm-rx": {
+      "projectType": "library",
+      "root": "projects/ngx-fsm-rx",
+      "sourceRoot": "projects/ngx-fsm-rx/src",
+      "prefix": "fsm-rx",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/ngx-fsm-rx/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-fsm-rx/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngx-fsm-rx/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "projects/ngx-fsm-rx/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "karmaConfig": "projects/ngx-fsm-rx/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/ngx-fsm-rx/**/*.ts",
+              "projects/ngx-fsm-rx/**/*.html"
+            ]
+          }
+        }
+      },
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      }
+    }
+  },
+  "cli": {
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

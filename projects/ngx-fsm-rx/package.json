@@ -1,0 +1,39 @@
+{
+  "name": "ngx-fsm-rx",
+  "version": "1.0.0",
+  "description": "Angular wrapper around FsmRx, a Finite State Machine built upon RxJS and Typescript.",
+  "keywords": [
+    "Typescript",
+    "RxJS",
+    "FSM",
+    "Compodoc",
+    "Angular",
+    "Schematics",
+    "Storybook",
+    "Mermaid"
+  ],
+  "author": "Chris Gregory",
+  "license": "ISC",
+  "scripts": {
+    "build": "tsc -p tsconfig.schematics.json",
+    "build:watch": "tsc -p tsconfig.schematics.json --watch",
+    "test": "npm run build && jasmine src/**/*_spec.js",
+    "postbuild": "copyfiles schematics/*/schema.json schematics/*/files/** schematics/collection.json ../../dist/ngx-fsm-rx/"
+  },
+  "ng-add": {
+    "save": "true"
+  },
+  "schematics": "./schematics/collection.json",
+  "peerDependencies": {
+    "@angular/common": ">=16.2.0",
+    "@angular/core": ">=16.2.0",
+    "rxjs": "^7.8.0",
+    "mermaid": "^10.4.0",
+    "deep-equal": "^2.2.3",
+    "fsm-rx": "1.0.0-alpha.1",
+    "prompts": "^2.4.2",
+    "@types/d3": "^7.4.3",
+    "@types/dompurify": "^3.0.5"
+  },
+  "sideEffects": false
+}
