@@ -16,7 +16,7 @@
   "scripts": {
     "build:dev": "ng build",
     "build": "ng build ngx-fsm-rx --configuration='production'",
-    "postbuild": "copyfiles -f readme.md dist/ngx-fsm-rx && copyfiles -f LICENSE dist/ngx-fsm-rx",
+    "postbuild": "copyfiles -f README.md dist/ngx-fsm-rx && copyfiles -f CHANGELOG.md dist/ngx-fsm-rx && copyfiles -f LICENSE dist/ngx-fsm-rx",
     "build:schematics": "cd ./projects/ngx-fsm-rx && npm run build",
     "build:pipe": "npm run lint && npm run test:ci && npm run compodoc:build && npm run build && npm run build:schematics",
     "watch": "ng build --watch --configuration development",
@@ -36,7 +36,6 @@
     "clean": "npm run clean:coverage && npm run clean:docs  && npm run clean:dist && npm run clean:angular",
     "reinstall": "npm run clean && npm run clean:node-modules && npm i",
     "publish:verdaccio": "npm run reinstall && npm run build:pipe && cd ./dist/ngx-fsm-rx && npm publish --registry=http://localhost:4873",
-    "publish:verdaccio": "npm run reinstall && npm run build:pipe && cd ./dist/ngx-fsm-rx && npm publish",
     "build:schematics:test": "npm run clean:dist && npm run build && npm run build:schematics"
   },
   "dependencies": {
