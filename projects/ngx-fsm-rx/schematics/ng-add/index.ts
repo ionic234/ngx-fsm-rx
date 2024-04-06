@@ -52,7 +52,7 @@ function addDependencies(tree: Tree, context: SchematicContext) {
         { type: NodeDependencyType.Dev, name: '@types/dompurify', version: '^3.0.5' },
         { type: NodeDependencyType.Dev, name: '@types/d3', version: '^7.4.3' },
         { type: NodeDependencyType.Default, name: 'deep-equal', version: '^2.2.3' },
-        { type: NodeDependencyType.Default, name: 'fsm-rx', version: '1.0.0-alpha.1' }
+        { type: NodeDependencyType.Default, name: 'fsm-rx', version: '^1.0.0' }
     ];
 
     dependencies.forEach(dependency => {

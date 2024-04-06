@@ -36,6 +36,7 @@
     "clean": "npm run clean:coverage && npm run clean:docs  && npm run clean:dist && npm run clean:angular",
     "reinstall": "npm run clean && npm run clean:node-modules && npm i",
     "publish:verdaccio": "npm run reinstall && npm run build:pipe && cd ./dist/ngx-fsm-rx && npm publish --registry=http://localhost:4873",
+    "publish:verdaccio": "npm run reinstall && npm run build:pipe && cd ./dist/ngx-fsm-rx && npm publish",
     "build:schematics:test": "npm run clean:dist && npm run build && npm run build:schematics"
   },
   "dependencies": {
@@ -48,7 +49,7 @@
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
     "deep-equal": "^2.2.3",
-    "fsm-rx": "^1.0.0-alpha.1",
+    "fsm-rx": "^1.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
