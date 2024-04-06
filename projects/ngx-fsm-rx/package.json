@@ -1,6 +1,6 @@
 {
   "name": "ngx-fsm-rx",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Angular wrapper around FsmRx, a Finite State Machine built upon RxJS and Typescript.",
   "keywords": [
     "Typescript",
